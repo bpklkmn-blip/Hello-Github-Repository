@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tes Network Panel</title>
+<style>
+:root{--g:#39ff14;--b:#00d4ff;--r:#ff2e4d;--p:#b44dff;--bg:#04060c;--panel:#0a0e18;--line:#1a2236;--txt:#c9d6e8;--mut:#5d6b84}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:13px/1.55 ui-monospace,'JetBrains Mono',Consolas,monospace;min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),
+  radial-gradient(800px 400px at 0% 0%,rgba(180,77,255,.08),transparent 60%),
+  radial-gradient(800px 400px at 100% 100%,rgba(0,212,255,.07),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:none;margin:0 auto;padding:14px 18px;min-height:100vh}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:16px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r),var(--g));background-size:300% 100%;animation:rgb 5s linear infinite}
+h1{font-size:19px;letter-spacing:3px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r),var(--g));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgb 6s linear infinite}
+@keyframes rgb{to{background-position:300% 0}}
+.sub{color:var(--mut);font-size:11px;margin-top:2px}
+.clock{margin-left:auto;color:var(--g);font-variant-numeric:tabular-nums;font-size:14px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.panel h2{font-size:11.5px;letter-spacing:2px;color:var(--mut);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h2::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c);box-shadow:0 0 10px var(--c)}
+.panel h2 .tag{margin-left:auto}
+.c-g{--c:var(--g)}.c-b{--c:var(--b)}.c-r{--c:var(--r)}.c-p{--c:var(--p)}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}
+@media(max-width:960px){.s8,.s6,.s4{grid-column:span 12}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.015);min-width:0}
+.stat small{color:var(--mut);font-size:10.5px;letter-spacing:1px;display:block}
+.stat b{display:block;font-size:13.5px;margin-top:4px;word-break:break-word}
+.ok{color:var(--g)}.warn{color:#ffb020}.bad{color:var(--r)}.info{color:var(--b)}
+.tag{font-size:10.5px;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--mut);letter-spacing:1px}
+.tag.ok{color:var(--g);border-color:rgba(57,255,20,.35)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;font-weight:700;letter-spacing:1px;font-size:11.5px;color:var(--txt);background:transparent;border:1px solid var(--c);padding:11px 8px;border-radius:8px;cursor:pointer;text-transform:uppercase;transition:.2s}
+button:hover:not(:disabled){background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:0 0 16px color-mix(in srgb,var(--c) 40%,transparent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+button.on,button.active{background:color-mix(in srgb,var(--c) 22%,transparent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row button{flex:1}
+input{font:inherit;background:#070b13;border:1px solid var(--line);color:var(--txt);padding:10px 12px;border-radius:8px;flex:1;min-width:160px}
+input:focus{outline:2px solid var(--b);outline-offset:1px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tabs button{padding:9px 14px;font-size:11px;--c:var(--b)}
+.tabbody{border:1px solid var(--line);border-radius:10px;padding:14px;background:rgba(255,255,255,.01)}
+.term{background:#02030a;border-radius:8px;padding:12px;height:620px;overflow-y:auto;font-size:12px;border:1px solid var(--line)}
+.term div{white-space:pre-wrap;word-break:break-word}
+.t-s{color:var(--g)}.t-u{color:var(--b)}.t-n{color:var(--p)}.t-d{color:#6ea8ff}.t-c{color:var(--r)}.t-w{color:#ffb020}
+.cursor{display:inline-block;width:8px;height:14px;background:var(--g);vertical-align:middle;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+canvas{width:100%;height:200px;display:block;background:#02030a;border-radius:8px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:500;letter-spacing:1px;font-size:10.5px}
+.kvt th{width:38%}
+.err{border:1px solid var(--line);border-left:3px solid var(--r);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:rgba(255,46,77,.04)}
+.err h4{font-size:12.5px;margin-bottom:4px}
+.err p{color:var(--mut);font-size:12px}
+.err ul{margin:6px 0 0 18px;font-size:12px}
+.good{border-left-color:var(--g);background:rgba(57,255,20,.04)}
+.note{color:var(--mut);font-size:11.5px;margin-top:10px}
+.evlist{max-height:170px;overflow-y:auto;margin-top:12px;font-size:12px}
+.evlist div{padding:5px 0;border-bottom:1px dashed var(--line)}
+.linklist{margin-top:10px;font-size:12px}
+.linklist div{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);word-break:break-all}
+.linklist span{flex:1}
+.linklist button{padding:4px 8px;font-size:10px}
+.hidden{display:none}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--p);border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:20px}
+.modal h3{color:var(--p);margin-bottom:10px;letter-spacing:2px}
+.modal ol{margin-left:18px}.modal li{margin-bottom:8px}
+.modal .close{margin-top:14px;width:100%;--c:var(--p)}
+.runner{display:none;margin-top:12px;overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:10px 0;
+  background:linear-gradient(90deg,rgba(57,255,20,.07),rgba(0,212,255,.07),rgba(180,77,255,.07),rgba(255,46,77,.07))}
+.runner.show{display:block;animation:runIn .6s ease}
+.runner span{display:inline-block;white-space:nowrap;padding-left:100%;font-weight:700;font-size:13px;letter-spacing:1.5px;
+  background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r),var(--g));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:marq 22s linear infinite, rgb 4s linear infinite}
+.runner:hover span{animation-play-state:paused, running}
+@keyframes marq{from{transform:translate(0,0)}to{transform:translate(-100%,0)}}
+@keyframes runIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+#history{max-height:560px;overflow-y:auto;border:1px solid var(--line);border-radius:10px}
+#history th{position:sticky;top:0;background:var(--panel);z-index:1}
+#bye{position:fixed;inset:0;background:#02030a;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;overflow:hidden;cursor:pointer}
+#bye.show{display:flex;animation:byeIn .6s ease}
+#byeFx{position:absolute;inset:0;width:100%;height:100%}
+.bye-in{position:relative;z-index:1;text-align:center;padding:20px}
+.bye-title{font-size:clamp(42px,9vw,104px);font-weight:700;letter-spacing:4px;
+  background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r),var(--g));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:rgb 3s linear infinite, wave 1.8s ease-in-out infinite;display:inline-block}
+.bye-sub{margin-top:16px;color:var(--mut);letter-spacing:2px;font-size:13px;min-height:22px}
+.bye-bar{width:0;height:3px;margin:22px auto 0;border-radius:3px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r));background-size:300% 100%;animation:rgb 2s linear infinite, grow 2.6s ease forwards}
+@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes grow{from{width:0}to{width:260px}}
+@keyframes byeIn{from{opacity:0}to{opacity:1}}
+.racks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.rack{background:linear-gradient(180deg,#0d1320,#070b13);border:1px solid #1c2740;border-radius:10px;padding:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 6px 18px rgba(0,0,0,.35)}
+.rack-head{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:1.5px;color:var(--mut);margin-bottom:8px}
+.rack-head b{color:var(--txt);font-weight:700}
+.unit{height:34px;border-radius:5px;background:repeating-linear-gradient(90deg,#0f1729 0 3px,#0b1220 3px 6px);border:1px solid #1f2b42;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:11px;color:#9fb2c6;margin-bottom:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.unit .led{flex-shrink:0}
+.led{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);animation:blinkLed 1.4s ease-in-out infinite}
+.led.idle{--c:#2a3648;animation:none;box-shadow:none}
+@keyframes blinkLed{50%{opacity:.35}}
+.unit .lbl{overflow:hidden;text-overflow:ellipsis}
+.unit .val{margin-left:auto;color:var(--c)}
+.racks{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
+@media(max-width:1100px){.racks{grid-template-columns:repeat(2,1fr)}.btns{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:640px){.racks{grid-template-columns:1fr}}
+.rack{position:relative;background:linear-gradient(180deg,#131c2e,#070b13);border:2px solid #243250;border-radius:10px;padding:14px 26px 12px;box-shadow:inset 0 0 0 1px #0a1020,0 12px 26px rgba(0,0,0,.55)}
+.rack::before,.rack::after{content:"";position:absolute;top:10px;bottom:10px;width:10px;border-radius:3px;background:repeating-linear-gradient(180deg,#1d2a44 0 5px,#0a1020 5px 9px)}
+.rack::before{left:6px}.rack::after{right:6px}
+.rack-head{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:1.5px;color:var(--mut);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #1f2b42}
+.rack-head b{color:var(--txt);font-weight:700;font-size:11px}
+.rack-tag{font-size:9.5px;padding:2px 7px;border-radius:4px;border:1px solid currentColor}
+.unit{position:relative;height:42px;border-radius:5px;background:linear-gradient(90deg,#0f1729,#0b1220);border:1px solid #1f2b42;display:flex;align-items:center;gap:9px;padding:0 12px;font-size:11px;color:#9fb2c6;margin-bottom:7px;overflow:hidden;white-space:nowrap}
+.unit::after{content:"";position:absolute;right:12px;top:12px;bottom:12px;width:56px;background:repeating-linear-gradient(90deg,#1b2740 0 2px,transparent 2px 5px);opacity:.8}
+.unit::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);transform:translateX(-100%);animation:sweep 3.8s linear infinite;pointer-events:none}
+@keyframes sweep{to{transform:translateX(100%)}}
+.unit .led{flex-shrink:0;position:relative;z-index:1}
+.unit .lbl{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.unit .val{position:relative;z-index:1;margin-left:auto;color:var(--c);padding-right:64px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.hero{position:relative;border:1px solid rgba(180,77,255,.4);border-radius:14px;padding:14px 16px 16px;margin-bottom:14px;
+  background:radial-gradient(520px 170px at 50% 0,rgba(180,77,255,.14),transparent 70%),#070b13;overflow:hidden;animation:heroPop .7s cubic-bezier(.2,.9,.3,1.15)}
+.hero::after{content:"";position:absolute;left:0;right:0;top:0;height:40%;background:linear-gradient(180deg,transparent,rgba(0,212,255,.1),transparent);animation:scanY 3.2s linear infinite;pointer-events:none}
+.hero svg{display:block;overflow:visible}
+.hero .ring{transform-box:fill-box;transform-origin:center;animation:ringp 2s ease-out infinite}
+@keyframes ringp{from{transform:scale(1);opacity:.9}to{transform:scale(2.4);opacity:0}}
+@keyframes scanY{from{transform:translateY(-100%)}to{transform:translateY(260%)}}
+@keyframes heroPop{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:none}}
+.hero-info{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:8px;animation:fadeUp .6s .25s both}
+.hero-name{font-size:17px;font-weight:700;letter-spacing:1px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--g));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgb 4s linear infinite;text-align:center}
+.hero-meta{font-size:11.5px;color:var(--mut);letter-spacing:.5px}
+.pill{font-size:11px;padding:3px 12px;border-radius:999px;border:1px solid rgba(57,255,20,.45);color:var(--g);background:rgba(57,255,20,.08);animation:glowPill 2s ease-in-out infinite;letter-spacing:1px}
+@keyframes glowPill{50%{box-shadow:0 0 16px rgba(57,255,20,.45)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.racks{position:relative}
+.racks.run .rack{animation:rackIn .6s cubic-bezier(.2,.9,.3,1.1) both;animation-delay:calc(var(--i) * 140ms)}
+.racks.run .rack-tag{animation:tagPop .5s ease both;animation-delay:calc(var(--i) * 140ms + 300ms)}
+.racks.run .unit{animation:unitIn .5s ease both;animation-delay:calc(var(--i) * 140ms + 260ms)}
+.racks.run .unit:nth-child(3){animation-delay:calc(var(--i) * 140ms + 420ms)}
+.racks.run .led:not(.idle){animation:ledFlash .4s ease-in-out 6}
+.racks.run::after{content:"";position:absolute;left:0;right:0;top:0;height:70px;pointer-events:none;z-index:3;
+  background:linear-gradient(180deg,transparent,rgba(0,212,255,.16),rgba(57,255,20,.1),transparent);animation:rackScan 2.2s ease-in-out both}
+@keyframes rackIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes unitIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+@keyframes tagPop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+@keyframes ledFlash{0%,100%{filter:brightness(1)}50%{filter:brightness(2.4)}}
+@keyframes rackScan{from{transform:translateY(-70px)}to{transform:translateY(calc(100% + 70px))}}
+.brand-title{display:inline-block;animation:rgb 6s linear infinite, glitch 6s steps(1) infinite;font-size:22px;letter-spacing:4px}
+@keyframes glitch{0%,88%,100%{transform:none;filter:none}89%{transform:skewX(-8deg) translateX(-2px);filter:drop-shadow(2px 0 #ff2e4d) drop-shadow(-2px 0 #00d4ff)}90%{transform:skewX(5deg);filter:drop-shadow(-2px 0 #39ff14) drop-shadow(2px 0 #b44dff)}91%{transform:none;filter:none}}
+.sub.credit{display:inline-block;font-size:12px;letter-spacing:1px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--r),var(--g));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgb 5s linear infinite, reveal 1.8s ease-out both;font-family:'Segoe UI Symbol','Noto Sans Symbols 2',system-ui,sans-serif}
+@keyframes reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.ipstep{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;animation:fadeUp .5s ease both}
+.ipstep .num{flex-shrink:0;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;border:1px solid var(--c,var(--g));color:var(--c,var(--g));box-shadow:0 0 10px color-mix(in srgb,var(--c,var(--g)) 40%,transparent)}
+.ipstep .txt{font-size:12.5px;line-height:1.6}
+.ipstep code{background:#070b13;border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--b)}
+.ipex{margin-top:10px;padding:10px 12px;border:1px dashed rgba(0,212,255,.4);border-radius:8px;font-size:12px;color:var(--b);background:rgba(0,212,255,.05)}
+.ipguide-h{font-size:14px;font-weight:700;margin-bottom:10px;letter-spacing:1px;background:linear-gradient(90deg,var(--g),var(--b),var(--p),var(--g));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgb 5s linear infinite}
+.racks{grid-template-columns:1fr !important;gap:14px !important;max-width:820px;margin:16px auto 0 !important}
+.racks .rack{width:100%}
+.pies{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.pies{grid-template-columns:1fr}}
+.pie-box{background:#02030a;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.pie-box canvas{width:100%;height:230px;display:block}
+.pie-title{font-size:12px;letter-spacing:2px;color:var(--mut);margin-top:6px}
+.pie-legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px}
+.pie-legend span{display:inline-flex;align-items:center;gap:6px}
+.pie-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 8px currentColor}
+.sub.credit{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:6px 14px;border-radius:999px;
+  border:1px solid rgba(180,77,255,.5);background:rgba(180,77,255,.08);color:#d5e1ee;font-size:11.5px;letter-spacing:.5px;
+  background-clip:border-box;-webkit-background-clip:border-box;animation:creditGlow 3s ease-in-out infinite;font-family:'Segoe UI',system-ui,sans-serif}
+.sub.credit::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 10px var(--g);flex-shrink:0;animation:blinkLed 1.4s ease-in-out infinite}
+@keyframes creditGlow{50%{box-shadow:0 0 18px rgba(180,77,255,.35)}}
+
+/* efek hacker pada rak 1-8 */
+.racks .rack{background-image:linear-gradient(180deg,transparent 0%,rgba(57,255,20,.07) 50%,transparent 100%),linear-gradient(180deg,#131c2e,#070b13);
+  background-size:100% 240%,100% 100%;background-repeat:no-repeat;animation:rackStreak 7s linear infinite;
+  box-shadow:0 0 0 1px rgba(57,255,20,.08),0 0 26px rgba(0,212,255,.10),inset 0 0 30px rgba(0,0,0,.45)}
+.racks .rack:nth-child(even){animation-duration:9s}
+@keyframes rackStreak{from{background-position:0 -120%,0 0}to{background-position:0 120%,0 0}}
+.racks .unit .val{text-shadow:0 0 8px currentColor;animation:hackFlicker 5s steps(1) infinite}
+.racks .unit .lbl{text-shadow:0 0 6px rgba(0,212,255,.35)}
+.racks .rack-tag{box-shadow:0 0 10px currentColor;animation:blinkLed 2s ease-in-out infinite}
+@keyframes hackFlicker{0%,100%{opacity:1}91%{opacity:1}92%{opacity:.55}93%{opacity:1}96%{opacity:.8}97%{opacity:1}}
+#termPanel{position:relative;overflow:hidden}
+#rain{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.5}
+#termPanel h2{position:relative;z-index:1}
+#term{position:relative;z-index:1;background:rgba(2,6,4,.82) !important;border-color:rgba(57,255,20,.25) !important;
+  text-shadow:0 0 6px rgba(57,255,20,.35);
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+#term::after{content:"";position:sticky;display:block;bottom:0;left:0;right:0;height:60px;margin-top:-60px;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(57,255,20,.07),transparent);animation:termScan 4s linear infinite}
+@keyframes termScan{from{transform:translateY(-100%)}to{transform:translateY(100%)}}
+
+.racks .rack{animation:rackStreak 7s linear infinite, rackPulse 4s ease-in-out infinite !important}
+@keyframes rackPulse{50%{border-color:#2f4a7a;box-shadow:0 0 34px rgba(57,255,20,.18),0 0 0 1px rgba(0,212,255,.12),inset 0 0 30px rgba(0,0,0,.45)}}
+.racks .rack-head{background:linear-gradient(90deg,transparent,rgba(0,212,255,.22),transparent);background-size:200% 100%;background-repeat:no-repeat;border-radius:6px;animation:beamX 3s linear infinite}
+@keyframes beamX{from{background-position:200% 0}to{background-position:-200% 0}}
+.racks .led{box-shadow:0 0 12px currentColor,0 0 26px currentColor !important}
+.racks .unit{box-shadow:inset 0 0 14px rgba(0,212,255,.06)}
+.racks .unit::before{background:linear-gradient(90deg,transparent,rgba(57,255,20,.12),rgba(0,212,255,.10),transparent) !important}
+.ccanvas{width:100%;height:260px;display:block;background:#02030a;border-radius:10px;border:1px solid var(--line)}
+.clearbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid rgba(255,176,32,.45);border-radius:8px;background:rgba(255,176,32,.05);position:relative;z-index:1;animation:fadeUp .4s ease both}
+.clear-q{color:#ffb020;font-size:12.5px;text-shadow:0 0 8px rgba(255,176,32,.4)}
+#clearIn{width:60px;flex:none;min-width:0;text-align:center;font-weight:700;letter-spacing:2px}
+.rgb-text{background:linear-gradient(90deg,#39ff14,#00d4ff,#b44dff,#ff2e4d,#39ff14);background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:rgb 4s linear infinite;font-weight:700;text-shadow:none}
+.info-msg{font-weight:500;letter-spacing:.3px}
+.host-link{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.host-link input{flex:1;min-width:200px;font-size:11.5px;color:var(--b)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1 class="brand-title">Tes Network Panel</h1>
+      <div class="sub credit">Dibuat Oleh Admin 𝘽͞𝙮͞  © 2025 𝙃𝙚𝙯𝙧𝙤𝙣 𝙎𝙞𝙢𝙖𝙣𝙟𝙪𝙣𝙩𝙖𝙠 𝙄𝙏𝘿 𝙎.𝙆𝙤𝙢.,,</div></div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button data-act="full" style="--c:var(--g);width:auto;padding:8px 14px">LAYAR PENUH</button>
+    <button data-act="closeApp" title="Tutup" style="--c:var(--r);width:auto;padding:8px 14px;font-size:14px">✕</button>
+    <button data-act="profile" title="Profil" style="--c:var(--p);width:auto;padding:6px 10px;border-radius:50%"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>
+  </header>
+
+  <div class="grid">
+    <section class="panel s12 c-g">
+      <h2>SERVER MONITORING <span class="tag" id="autoTag">AUTO OFF</span></h2>
+      <div class="stats" id="mon"></div>
+    </section>
+
+    <section class="panel s12 c-b">
+      <h2>NETWORK REPAIR CENTER</h2>
+      <div class="btns" style="grid-template-columns:repeat(4,1fr)">
+        <button data-act="scan" style="--c:var(--g)">START NETWORK SCAN</button>
+        <button data-act="diag" style="--c:var(--b)">DIAGNOSE CONNECTION</button>
+        <button data-act="usb" style="--c:var(--p)">CHECK USB DEVICE</button>
+        <button data-act="test" style="--c:var(--b)">TEST INTERNET</button>
+        <button data-act="guide" style="--c:var(--r)">NETWORK REPAIR GUIDE</button>
+        <button data-act="refresh" style="--c:var(--g)">REFRESH CONNECTION STATUS</button>
+        <button data-act="auto" id="autoBtn" style="--c:var(--p)">AUTO MONITOR: OFF</button>
+        <button data-act="export" style="--c:var(--b)">EKSPOR LAPORAN</button>
+      </div>
+      <div class="racks" id="racks"></div>
+      <p class="note" id="racksNote"></p>
+      <p class="note">Panel hanya mengukur dan memberi saran. Browser tidak dapat mengubah router, DNS, atau konfigurasi jaringan Anda.</p>
+    </section>
+
+    <section class="panel s8 c-p" id="termPanel">
+      <h2>TERMINAL</h2>
+      <div id="tinfo" style="font-size:11.5px;color:var(--mut);margin-bottom:8px"></div>
+      <div id="mapBox"></div>
+      <canvas id="rain" aria-hidden="true"></canvas>
+      <div class="term" id="term"></div>
+      <div id="clearBox" class="clearbox hidden">
+        <span class="clear-q">[CLEAR] do you want to clear this terminal? {y}</span>
+        <input id="clearIn" maxlength="1" autocomplete="off" placeholder="y">
+      </div>
+      <div class="runner" id="runner"><span id="runnerText"></span></div>
+    </section>
+
+    <section class="panel s12 c-b">
+      <h2>KONEKSI KABEL & PERANGKAT</h2>
+      <div class="tabs" id="tabs"></div>
+      <div class="tabbody" id="tabBody"></div>
+      <div class="row">
+        <button data-act="permit" style="--c:var(--p)">IZINKAN KABEL / PERANGKAT</button>
+        <button data-act="ipdev" id="ipBtn" style="--c:var(--b)">MASUKAN IP PERANGKAT</button>
+        
+        <button data-act="server" id="serverBtn" style="--c:var(--g)">MULAI SERVER</button>
+      </div>
+      <div class="evlist" id="events"></div>
+    </section>
+
+    <section class="panel s12 c-b">
+      <h2>CARA MELIHAT IP PERANGKAT</h2>
+      <div class="tabs" id="ipTabs">
+        <button data-iptab="hp" class="active" style="--c:var(--g)">HANDPHONE</button>
+        <button data-iptab="laptop" style="--c:var(--b)">LAPTOP</button>
+        <button data-iptab="monitor" style="--c:var(--p)">MONITOR / TV</button>
+        <button data-iptab="tablet" style="--c:var(--r)">TABLET</button>
+        <button data-iptab="router" style="--c:var(--g)">ROUTER</button>
+        <button data-iptab="jenis" style="--c:var(--r)">JENIS IP</button>
+      </div>
+      <div class="tabbody" id="ipGuide" style="max-height:560px;overflow-y:auto"></div>
+      <p class="note">IP lokal (contoh 192.168.1.25) hanya berlaku di jaringan yang sama. Gunakan IP ini di MASUKAN IP PERANGKAT.</p>
+    </section>
+
+    <section class="panel s6 c-g">
+      <h2>AKTIVITAS KONEKSI</h2>
+      <div id="browserBox"></div>
+      <p class="note">Riwayat browser dan daftar aplikasi terpasang tidak bisa dibaca dari halaman web. Panel hanya memeriksa link yang Anda tambahkan di bawah.</p>
+    </section>
+
+    <section class="panel s6 c-g">
+      <h2>LINK HARIAN <span class="tag" id="linkCount">0 link</span></h2>
+      <div class="row" style="margin-top:0"><input id="linkIn" placeholder="contoh: tokoku.id atau https://app.contoh.com" autocomplete="off"><button data-act="addlink" style="--c:var(--g)">TAMBAH</button></div>
+      <div class="linklist" id="linkList"></div>
+      <div class="row"><button data-act="ipdev" style="--c:var(--p)">MASUKAN IP PERANGKAT</button></div>
+      <div id="linkOut" style="margin-top:12px"></div>
+    </section>
+
+    <section class="panel s12 c-b">
+      <h2>HASIL SCAN JARINGAN</h2>
+      <div id="results"><p class="note">Belum ada pemindaian. Tekan START NETWORK SCAN atau DIAGNOSE CONNECTION.</p></div>
+    </section>
+
+    <section class="panel s6 c-r">
+      <h2>DETEKSI ERROR</h2>
+      <div id="errors"><p class="note">Belum ada analisis.</p></div>
+    </section>
+
+    <section class="panel s6 c-b" id="graphCard">
+      <h2>GRAFIK LATENSI <span class="tag" id="graphInfo">—</span></h2>
+      <canvas id="graph"></canvas>
+      <p class="note">Garis = latensi per ping. Titik merah = ping gagal. Grafik muncul setelah pengecekan selesai.</p>
+    </section>
+
+    <section class="panel s12 c-b" id="metricCard">
+      <h2>GRAFIK METRIK HASIL MULAI SERVER</h2>
+      <canvas id="cMetric" class="ccanvas"></canvas>
+      <p class="note" id="metricInfo">menunggu MULAI SERVER</p>
+    </section>
+
+    <section class="panel s12 c-p" id="columnCard">
+      <h2>GRAFIK COLUMN HASIL MULAI SERVER</h2>
+      <canvas id="cColumn" class="ccanvas"></canvas>
+      <p class="note">Tinggi kolom sebanding dengan nilai terukur. Warna hijau baik, kuning perlu dicek, merah bermasalah.</p>
+    </section>
+
+    <section class="panel s12 c-g" id="surfaceCard">
+      <h2>GRAFIK SURFACE LATENSI</h2>
+      <canvas id="cSurface" class="ccanvas"></canvas>
+      <p class="note">Permukaan 3D dari 36 sampel ping terakhir. Makin tinggi permukaan, makin besar latensinya.</p>
+    </section>
+
+    <section class="panel s12 c-r" id="traderCard">
+      <h2>GRAFIK TRADER LATENSI</h2>
+      <canvas id="cTrader" class="ccanvas"></canvas>
+      <p class="note">Setiap candle merangkum 5 ping: buka, tutup, tertinggi, dan terendah. Candle hijau berarti latensi turun, merah berarti naik.</p>
+    </section>
+
+    <section class="panel s12 c-p" id="diagCard">
+      <h2>DIAGRAM HASIL MULAI SERVER</h2>
+      <canvas id="diag" style="width:100%;height:260px;display:block;background:#02030a;border-radius:8px;border:1px solid var(--line)"></canvas>
+      <p class="note" id="diagInfo"></p>
+    </section>
+
+    <section class="panel s12 c-b" id="pieCard">
+      <h2>DIAGRAM LINGKARAN HASIL MULAI SERVER</h2>
+      <div class="pies">
+        <div class="pie-box">
+          <canvas id="pie1"></canvas>
+          <div class="pie-title">PING</div>
+          <div class="pie-legend" id="pie1Legend"></div>
+        </div>
+        <div class="pie-box">
+          <canvas id="pie2"></canvas>
+          <div class="pie-title">SERVER & LINK WEBSITE</div>
+          <div class="pie-legend" id="pie2Legend"></div>
+        </div>
+      </div>
+      <p class="note" id="pieInfo"></p>
+    </section>
+
+        <section class="panel s12 c-g" id="adviceCard">
+      <h2>SARAN AGAR KONEKSI STABIL DAN AMAN</h2>
+      <div id="advice"></div>
+    </section>
+
+    <section class="panel s12 c-g">
+      <h2>CEK WEBSITE</h2>
+      <div class="row" style="margin-top:0"><input id="siteIn" placeholder="contoh: wikipedia.org" autocomplete="off"><button data-act="ipdev" style="--c:var(--p)">MASUKAN IP PERANGKAT</button></div>
+      <div id="siteOut" style="margin-top:12px"></div>
+    </section>
+
+    <section class="panel s12 c-p" id="hostCard">
+      <h2>CREATE HOSTING</h2>
+      <div class="row" style="margin-top:0"><input type="file" id="hostFile" accept=".html,.htm,.txt,.md" style="flex:1;min-width:200px"><button id="hostMake" style="--c:var(--p)">CREATE HOSTING</button></div>
+      <div id="hostOut" style="margin-top:12px"></div>
+      <p class="note">Link berisi seluruh isi file. Salin lalu tempel di address bar browser untuk membukanya di HP, tablet, atau laptop. Tidak perlu menunggu, dan batas praktisnya sekitar 2 MB.</p>
+    </section>
+
+    <section class="panel s12 c-g hidden" id="histCard">
+      <h2>RIWAYAT SCAN <span class="tag" id="histCount">0 scan</span></h2>
+      <div id="history"></div>
+    </section>
+  </div>
+</div>
+
+<div id="bye" title="klik untuk kembali">
+  <canvas id="byeFx"></canvas>
+  <div class="bye-in">
+    <div class="bye-title">Sayonara 👋</div>
+    <div class="bye-sub" id="byeSub"></div>
+    <div class="bye-bar"></div>
+  </div>
+</div>
+<div id="profilePanel" class="hidden" style="position:fixed;top:78px;right:18px;width:300px;background:var(--panel);border:1px solid var(--p);border-radius:12px;padding:16px;z-index:20;box-shadow:0 12px 40px rgba(0,0,0,.5)">
+  <h2 style="font-size:11.5px;letter-spacing:2px;color:var(--mut);margin-bottom:12px">PROFIL</h2>
+  <div class="stat" style="margin-bottom:8px"><small>Nama</small><input id="pname" placeholder="nama admin" style="width:100%;margin-top:6px"></div>
+  <div class="row" style="margin-top:6px"><button data-act="saveProfile" style="--c:var(--g);flex:1">SIMPAN NAMA</button></div>
+  <div id="pinfo" class="note" style="margin-top:12px;line-height:1.9"></div>
+</div>
+<div class="modal-bg" id="modal"><div class="modal" id="modalBody"></div></div>
+
+<script>
+/* ================= UTIL ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ts = () => new Date().toLocaleTimeString('id-ID', {hour12:false});
+const stamp = () => new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+const hex = n => '0x' + n.toString(16).padStart(4,'0').toUpperCase();
+const dayKey = off => { const d = new Date(Date.now() - off * 864e5); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+const URLS = {
+  gen:'https://www.google.com/generate_204', trace:'https://www.cloudflare.com/cdn-cgi/trace',
+  wiki:'https://www.wikipedia.org/favicon.ico', doh:'https://cloudflare-dns.com/dns-query',
+  down:'https://speed.cloudflare.com/__down?bytes=2000000', up:'https://speed.cloudflare.com/__up'
+};
+const TABS = {
+  usb:   {label:'USB-C · Lightning · USB Lainnya', tip:'Gunakan kabel yang mendukung transfer data, bukan kabel charge saja. Colokkan langsung ke laptop tanpa hub. Browser tidak bisa membaca jenis kabel (USB-C, Lightning, USB-A), jadi perangkat hanya terlihat setelah diizinkan. Perangkat Lightning dari iPhone umumnya tidak terlihat oleh WebUSB.'},
+  micro: {label:'Micro USB',  tip:'Kabel Micro USB umumnya dipakai perangkat lama. Pastikan kabel mendukung transfer data dan colokkan langsung ke laptop, tanpa hub.'},
+  wifi:  {label:'Wi-Fi',      tip:''},
+  eth:   {label:'Ethernet',   tip:''}
+};
+
+const S = {
+  online:navigator.onLine, conn:null, usb:null, usbErr:null, usbDevs:[], devStatus:{},
+  dns:null, lat:null, jit:null, loss:null, lastScan:null, last:null,
+  scanning:false, auto:false, autoTimer:null, lossStreak:0,
+  lathist:[], events:[], listenUntil:0, listenCount:0,
+  tab:'usb', graphReady:true, links:[], browser:null
+};
+let history = [];
+try{ history = JSON.parse(localStorage.getItem('hezron.history') || '[]'); }catch(e){ history = []; }
+const saveHistory = () => { try{ localStorage.setItem('hezron.history', JSON.stringify(history.slice(-200))); }catch(e){} };
+try{ S.links = JSON.parse(localStorage.getItem('hezron.links') || '[]'); }catch(e){ S.links = []; }
+const saveLinks = () => { try{ localStorage.setItem('hezron.links', JSON.stringify(S.links)); }catch(e){} };
+const loadDays = () => { try{ return JSON.parse(localStorage.getItem('hezron.linkdays') || '{}'); }catch(e){ return {}; } };
+const saveDays = d => {
+  try{
+    const o = {}; Object.keys(d).sort().slice(-14).forEach(k => o[k] = d[k]);
+    localStorage.setItem('hezron.linkdays', JSON.stringify(o));
+  }catch(e){}
+};
+
+/* ================= TERMINAL ================= */
+const tsTerm = () => {
+  const d = new Date(), p = (n, l = 2) => String(n).padStart(l, '0');
+  return `${p(d.getHours())}.${p(d.getMinutes())}.${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+};
+function ensureCmd(){}
+function log(tag, msg, cls = 't-s'){
+  const t = $('#term');
+  const old = t.querySelector('.cursor-line'); if(old) old.remove();
+  const d = document.createElement('div'), s = document.createElement('span');
+  s.className = cls; s.textContent = '[' + tag + '] ';
+  d.append(s, document.createTextNode(tsTerm() + '  ' + msg));
+  t.appendChild(d);
+  ensureCmd();
+  t.scrollTop = t.scrollHeight;
+}
+const VENDORS = {
+  0x05ac:'Apple', 0x04e8:'Samsung', 0x18d1:'Google', 0x2717:'Xiaomi', 0x22b8:'Motorola', 0x12d1:'Huawei',
+  0x054c:'Sony', 0x1004:'LG', 0x0bb4:'HTC', 0x2a70:'OnePlus', 0x046d:'Logitech', 0x045e:'Microsoft',
+  0x8087:'Intel', 0x0bda:'Realtek', 0x0403:'FTDI', 0x10c4:'Silicon Labs', 0x1a86:'QinHeng (CH340)'
+};
+const brandOf = d => VENDORS[d.vendorId] || d.manufacturerName || 'merek tidak dikenal';
+async function logBattery(){
+  if(!navigator.getBattery){ log('BATERAI', 'tidak tersedia di browser ini', 't-w'); return; }
+  try{
+    const b = await navigator.getBattery();
+    const pct = Math.round(b.level * 100);
+    const left = !b.charging && isFinite(b.dischargingTime) ? ` · sisa ~${Math.round(b.dischargingTime / 60)} menit` : '';
+    log('BATERAI', `${pct}% · ${b.charging ? 'sedang mengisi' : 'tidak mengisi'}${left}`, pct <= 20 && !b.charging ? 't-c' : 't-d');
+  }catch(e){ log('BATERAI', 'gagal dibaca: ' + e.message, 't-w'); }
+}
+async function logDevices(){
+  if(!('usb' in navigator) || !window.isSecureContext){ log('MEREK', 'WebUSB tidak tersedia, merek perangkat USB tidak bisa dibaca', 't-w'); return; }
+  const devs = await navigator.usb.getDevices();
+  if(!devs.length){ log('MEREK', 'belum ada perangkat USB yang diizinkan', 't-w'); return; }
+  devs.forEach(d => log('MEREK', `${brandOf(d)} · ${d.productName || 'tanpa nama'} · VID ${hex(d.vendorId)}`, 't-d'));
+}
+function logTopApps(){
+  const cnt = {};
+  Object.values(loadDays()).forEach(day => Object.keys(day).forEach(u => { cnt[u] = (cnt[u] || 0) + 1; }));
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if(!top.length){ log('APLIKASI', 'belum ada data. Tambahkan aplikasi atau link di LINK HARIAN lalu jalankan CEK LINK.', 't-w'); return; }
+  top.forEach(([u, n], i) => log('APLIKASI', `#${i+1} ${u} · dicek ${n} hari`, 't-d'));
+}
+async function logSystemInfo(){
+  await logDevices();
+  logTopApps();
+}
+
+const fmtDT = d => d.toLocaleString('id-ID', {dateStyle:'full', timeStyle:'medium'}) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+const tzInfo = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'tidak diketahui';
+function updateTermInfo(){
+  const el = $('#tinfo');
+  if(el) el.textContent = `${fmtDT(new Date())} · zona ${tzInfo()} · lokasi: ${S.geo || 'diambil saat MULAI SERVER'}`;
+}
+function getLocation(){
+  if(!navigator.geolocation){ log('LOKASI', 'geolocation tidak tersedia di browser ini', 't-w'); return; }
+  log('LOKASI', 'meminta lokasi dari browser...', 't-n');
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      S.geo = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)} (±${Math.round(p.coords.accuracy)} m)`;
+      log('LOKASI', `titik lokasi: ${S.geo}`, 't-s'); updateTermInfo();
+      const la = p.coords.latitude, lo = p.coords.longitude;
+      $('#mapBox').innerHTML = `<iframe title="titik lokasi" style="width:100%;height:200px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px" src="https://www.openstreetmap.org/export/embed.html?bbox=${lo-0.01},${la-0.006},${lo+0.01},${la+0.006}&layer=mapnik&marker=${la},${lo}"></iframe>`;
+    },
+    err => log('LOKASI', `lokasi tidak tersedia: ${err.message}`, 't-w'),
+    {enableHighAccuracy:false, timeout:10000, maximumAge:600000}
+  );
+}
+
+function logDevice(){
+  const off = -new Date().getTimezoneOffset(), sign = off >= 0 ? '+' : '-';
+  const hh = Math.floor(Math.abs(off) / 60), mm = Math.abs(off) % 60;
+  const utc = 'UTC' + sign + hh + (mm ? ':' + String(mm).padStart(2, '0') : '');
+  log('PERANGKAT', `${navigator.platform || 'platform tidak diketahui'} · layar ${screen.width}×${screen.height} · ${navigator.hardwareConcurrency || '—'} thread CPU · ${navigator.deviceMemory ? '±' + navigator.deviceMemory + ' GB RAM' : 'RAM tidak diketahui'} · zona ${tzInfo()} (${utc}) · bahasa ${navigator.language}`, 't-d');
+}
+
+function logInfo(){
+  const t = $('#term');
+  if(t.querySelector('.info-msg')) return;
+  const old = t.querySelector('.cursor-line'); if(old) old.remove();
+  const d = document.createElement('div');
+  d.innerHTML = `<span class="rgb-text">[INFOMASI]</span> <span class="rgb-text info-msg">Hi, Welcome To Terminal Created By Admin 𝘽͞𝙮͞  © 2025 𝙃𝙚𝙯𝙧𝙤𝙣 𝙎𝙞𝙢𝙖𝙣𝙟𝙪𝙣𝙩𝙖𝙠 𝙄𝙏𝘿 𝙎.𝙆𝙤𝙢.,, Enjoy Playing Terminal Yes, It's 100% Safe</span>`;
+  t.appendChild(d);
+  ensureCmd();
+  t.scrollTop = t.scrollHeight;
+}
+
+function bootTerminal(){
+  log('SERVER', 'HEZRON NETWORK REPAIR PANEL v2 siap', 't-s');
+  log('SERVER', 'Protokol halaman: ' + location.protocol, location.protocol === 'file:' ? 't-w' : 't-u');
+  log('SERVER', 'Secure context: ' + (window.isSecureContext ? 'ya' : 'tidak (WebUSB dibatasi)'), 't-u');
+  log('USB', 'WebUSB: ' + ('usb' in navigator ? 'tersedia' : 'tidak tersedia di browser ini'), 't-n');
+  logInfo();
+  log('NETWORK', 'Network Information API: ' + (navigator.connection ? 'tersedia' : 'tidak tersedia'), 't-d');
+  log('WAKTU', 'sekarang: ' + fmtDT(new Date()), 't-u');
+  logDevice();
+  logIpStatus();
+  log('LOKASI', `zona waktu ${tzInfo()} · koordinat akan diambil saat MULAI SERVER`, 't-u');
+  updateTermInfo();
+  logSystemInfo();
+}
+
+/* ================= NETWORK HELPERS ================= */
+async function req(url, opt = {}, ms = 4000){
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms), t0 = performance.now();
+  try{
+    const res = await fetch(url, {cache:'no-store', ...opt, signal: ctl.signal});
+    return {ok:true, ms: performance.now() - t0, res};
+  }catch(e){
+    return {ok:false, ms: performance.now() - t0, timeout: e.name === 'AbortError'};
+  }finally{ clearTimeout(tm); }
+}
+function pushLat(v){
+  S.lathist.push(v); if(S.lathist.length > 90) S.lathist.shift();
+  if(S.graphReady) drawGraph();
+}
+async function pings(n, quiet){
+  const samples = []; let lost = 0;
+  for(let i = 0; i < n; i++){
+    const r = await req(URLS.gen + '?_=' + Math.random(), {mode:'no-cors'}, 3000);
+    if(r.ok){ samples.push(r.ms); pushLat(r.ms); if(!quiet) log('PING', `#${i+1}  ${r.ms.toFixed(0)} ms`, 't-d'); }
+    else { lost++; pushLat(null); if(!quiet) log('PING', `#${i+1}  ${r.timeout ? 'timeout' : 'gagal'}`, 't-w'); }
+  }
+  let jit = null;
+  if(samples.length > 1){
+    let sum = 0; for(let i = 1; i < samples.length; i++) sum += Math.abs(samples[i] - samples[i-1]);
+    jit = sum / (samples.length - 1);
+  }
+  return {samples, lat: samples.length ? samples.reduce((a,b)=>a+b,0)/samples.length : null, jit, loss: lost / n * 100};
+}
+
+/* ================= STATUS ================= */
+function readConn(){
+  const c = navigator.connection;
+  return c ? {type: c.type || 'tidak diketahui', eff: c.effectiveType || 'tidak diketahui', rtt: c.rtt, down: c.downlink} : null;
+}
+function refreshStatus(silent){
+  S.online = navigator.onLine; S.conn = readConn();
+  if(!silent) log('NETWORK', `status: ${S.online ? 'online' : 'offline'} · ${S.conn ? S.conn.type + ' · ' + S.conn.eff : 'Network Information API tidak tersedia'}`, 't-u');
+  refreshMonitor(); renderTab();
+}
+const fmtBytes = b => b == null ? '—' : b > 1e9 ? (b/1e9).toFixed(2) + ' GB' : b > 1e6 ? (b/1e6).toFixed(1) + ' MB' : b > 1e3 ? (b/1e3).toFixed(0) + ' KB' : b + ' B';
+async function gatherEnv(){
+  const e = {};
+  e.cores = navigator.hardwareConcurrency || null;
+  e.mem = navigator.deviceMemory || null;
+  e.screen = `${screen.width}×${screen.height} · ${window.devicePixelRatio || 1}x`;
+  e.touch = navigator.maxTouchPoints || 0;
+  e.viewport = `${window.innerWidth}×${window.innerHeight}`;
+  e.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'gelap' : 'terang';
+  e.platform = navigator.platform || null;
+  e.gpu = null;
+  try{
+    const cv = document.createElement('canvas'), gl = cv.getContext('webgl');
+    const dbg = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    e.gpu = gl ? (dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'tersembunyi browser') : 'WebGL tidak tersedia';
+  }catch(x){}
+  e.arch = null;
+  try{
+    if(navigator.userAgentData){
+      const v = await navigator.userAgentData.getHighEntropyValues(['architecture','platformVersion','model']);
+      e.arch = [v.architecture, v.model].filter(Boolean).join(' · ') || null;
+      e.platVer = v.platformVersion || null;
+    }
+  }catch(x){}
+  e.quota = null; e.usage = null;
+  try{ if(navigator.storage && navigator.storage.estimate){ const q = await navigator.storage.estimate(); e.quota = q.quota; e.usage = q.usage; } }catch(x){}
+  e.heap = performance.memory ? performance.memory.usedJSHeapSize : null;
+  e.heapLimit = performance.memory ? performance.memory.jsHeapSizeLimit : null;
+  let ls = 0; try{ for(const k of Object.keys(localStorage)) ls += (localStorage.getItem(k) || '').length * 2; }catch(x){}
+  e.lsBytes = ls;
+  e.apis = ['usb' in navigator, !!navigator.geolocation, !!navigator.getBattery, !!navigator.connection, !!navigator.storage, !!document.fullscreenEnabled].filter(Boolean).length;
+  S.env = e;
+  renderRacks();
+}
+function playRacks(){
+  const el = $('#racks');
+  el.classList.remove('run'); void el.offsetWidth; el.classList.add('run');
+  clearTimeout(S.racksTimer);
+  S.racksTimer = setTimeout(() => el.classList.remove('run'), 3000);
+}
+function renderRacks(){
+  const R = S.last;
+  const reachOk = R && R.reach.length ? R.reach.filter(v => v.ok).length : null;
+  const gFail = Object.values(S.devStatus).some(v => v.startsWith('gagal'));
+  const gOk = Object.values(S.devStatus).some(v => v.startsWith('terhubung'));
+  const d = S.usbDevs[0] || null;
+  const st = d ? S.devStatus[devKey(d)] : null;
+  const cfg = d && d.configurations ? d.configurations : [];
+  const ifCount = cfg.reduce((a, c) => a + (c.interfaces ? c.interfaces.length : 0), 0);
+  const racks = [
+    {name:'RAK 1 · INTERNET', units:[
+      {st: !S.online ? 'bad' : S.lat == null ? 'idle' : S.lat <= 150 ? 'ok' : 'warn', lbl:'latensi', val: !S.online ? 'OFFLINE' : S.lat == null ? 'belum diukur' : Math.round(S.lat) + ' ms'},
+      {st: R && R.loss != null ? (R.loss <= 1 ? 'ok' : R.loss <= 5 ? 'warn' : 'bad') : 'idle', lbl:'packet loss', val: R && R.loss != null ? Math.round(R.loss) + '%' : '—'}]},
+    {name:'RAK 2 · DNS', units:[
+      {st: S.dns == null ? 'idle' : S.dns === 'OK' ? 'ok' : S.dns === 'Sebagian' ? 'warn' : 'bad', lbl:'resolusi nama', val: S.dns || 'belum diuji'},
+      {st: R && R.dns ? (R.dns === 'OK' ? 'ok' : 'warn') : 'idle', lbl:'hasil terakhir', val: R && R.dns ? R.dns : '—'}]},
+    {name:'RAK 3 · SERVER', units:[
+      {st: reachOk == null ? 'idle' : reachOk === R.reach.length ? 'ok' : reachOk > 0 ? 'warn' : 'bad', lbl:'server terjangkau', val: reachOk == null ? 'belum diuji' : reachOk + '/' + R.reach.length},
+      {st: R && R.down != null ? (R.down >= 10 ? 'ok' : R.down >= 2 ? 'warn' : 'bad') : 'idle', lbl:'download', val: R && R.down != null ? R.down.toFixed(1) + ' Mbps' : '—'}]},
+    {name:'RAK 4 · KABEL', units:[
+      {st: S.usbErr ? 'bad' : S.usbDevs.length ? 'ok' : 'idle', lbl:'perangkat USB', val: S.usbErr ? 'error' : S.usbDevs.length ? S.usbDevs.length + ' terhubung' : 'tidak ada'},
+      {st: gFail ? 'bad' : gOk ? 'ok' : 'idle', lbl:'koneksi kabel', val: gFail ? 'gagal' : gOk ? 'terhubung' : '—'}]},
+    {name:'RAK 5 · FISIK (PERANGKAT KABEL)', units:[
+      {st: d ? 'ok' : 'idle', lbl:'VID · PID', val: d ? hex(d.vendorId) + ' · ' + hex(d.productId) : '—'},
+      {st: d && d.usbVersionMajor != null ? 'ok' : 'idle', lbl:'versi USB', val: d && d.usbVersionMajor != null ? d.usbVersionMajor + '.' + d.usbVersionMinor : '—'}]},
+    {name:'RAK 6 · PENYIMPANAN (PERANGKAT KABEL)', units:[
+      {st: cfg.length ? 'ok' : 'idle', lbl:'konfigurasi', val: d ? cfg.length + ' konfigurasi' : '—'},
+      {st: ifCount ? 'ok' : 'idle', lbl:'antarmuka', val: d ? ifCount + ' antarmuka' : '—'}]},
+    {name:'RAK 7 · APLIKASI (PERANGKAT KABEL)', units:[
+      {st: d && d.productName ? 'ok' : 'idle', lbl:'nama produk', val: d ? (d.productName || 'tanpa nama') : '—'},
+      {st: d && d.serialNumber ? 'ok' : 'idle', lbl:'nomor seri', val: d && d.serialNumber ? d.serialNumber : '—'}]},
+    {name:'RAK 8 · SoC (PERANGKAT KABEL)', units:[
+      {st: d ? 'ok' : 'idle', lbl:'merek', val: d ? brandOf(d) : '—'},
+      {st: st ? (st.startsWith('terhubung') ? 'ok' : st.startsWith('gagal') ? 'bad' : 'warn') : 'idle', lbl:'status koneksi', val: st || '—'}]}
+  ];
+  const col = {ok:'#39ff14', warn:'#ffb020', bad:'#ff2e4d', idle:'#2a3648'};
+  $('#racks').innerHTML = racks.map((rk, idx) => {
+    const bad = rk.units.some(u => u.st === 'bad'), warn = rk.units.some(u => u.st === 'warn');
+    const allIdle = rk.units.every(u => u.st === 'idle');
+    const status = bad ? 'PERLU PERHATIAN' : warn ? 'PERLU DICEK' : allIdle ? 'STANDBY' : 'AKTIF';
+    const sc = bad ? col.bad : warn ? col.warn : allIdle ? '#5d6b84' : col.ok;
+    return `<div class="rack" style="--i:${idx}">
+      <div class="rack-head"><b>${rk.name}</b><span class="rack-tag" style="color:${sc}">${status}</span></div>
+      ${rk.units.map(u => `<div class="unit" style="--c:${col[u.st]}"><span class="led ${u.st === 'idle' ? 'idle' : ''}" style="width:8px;height:8px;border-radius:50%;background:${col[u.st]};box-shadow:0 0 10px ${col[u.st]};${u.st==='idle'?'animation:none;box-shadow:none':''}"></span><span class="lbl">${u.lbl}</span><span class="val">${esc(u.val)}</span></div>`).join('')}
+    </div>`;
+  }).join('');
+  $('#racksNote').textContent = d
+    ? 'RAK 5–8 membaca perangkat di ujung kabel (' + (d.productName || 'tanpa nama') + '). Lewat USB, browser hanya bisa membaca data identitas dan konfigurasi perangkat. RAM, penyimpanan internal, dan model SoC ponsel tidak tersedia lewat WebUSB biasa.'
+    : 'RAK 5–8 akan terisi setelah perangkat di kabel diizinkan dan terhubung. Browser tidak bisa membaca RAM, penyimpanan, atau SoC ponsel lewat USB biasa.';
+}
+function refreshMonitor(){
+  const stab = S.loss == null ? 'belum diuji' : (S.loss > 5 || S.jit > 50 ? 'tidak stabil' : 'stabil');
+  const usbClass = S.usbErr ? 'bad' : (S.usbDevs.length ? 'ok' : 'info');
+  const items = [
+    ['Server Status', 'Browser aktif · panel siap', 'ok'],
+    ['Internet Status', S.online ? 'Online' : 'Offline', S.online ? 'ok' : 'bad'],
+    ['USB Device Status', S.usb || 'belum diperiksa', usbClass],
+    ['DNS Status', S.dns || 'belum diuji', S.dns === 'OK' ? 'ok' : (S.dns ? 'warn' : '')],
+    ['Connection Stability', stab, stab === 'stabil' ? 'ok' : (stab === 'belum diuji' ? '' : 'warn')],
+    ['Network Latency', S.lat == null ? 'belum diuji' : S.lat.toFixed(0) + ' ms', ''],
+    ['Link Harian', S.links.length + ' link dipantau', ''],
+    ['Last Scan Time', S.lastScan || 'belum pernah', '']
+  ];
+  renderRacks();
+  $('#mon').innerHTML = items.map(([k,v,c]) => `<div class="stat"><small>${k}</small><b class="${c}">${esc(v)}</b></div>`).join('');
+}
+
+/* ================= GRAFIK ================= */
+function showGraph(){ S.graphReady = true; $('#graphCard').classList.remove('hidden'); drawGraph(); }
+function drawGraph(){
+  const c = $('#graph'); if(!c || !S.graphReady) return;
+  const dpr = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
+  const W = r.width, H = r.height, d = S.lathist, pad = 14, N = 90;
+  x.clearRect(0,0,W,H);
+  x.strokeStyle = '#1a2236'; x.lineWidth = 1;
+  for(let i = 1; i < 4; i++){ const y = pad + (H - 2*pad) * i/4; x.beginPath(); x.moveTo(0,y); x.lineTo(W,y); x.stroke(); }
+  const vals = d.filter(v => v != null);
+  if(d.length < 2){ x.fillStyle = '#5d6b84'; x.fillText('belum ada data', 12, H/2); $('#graphInfo').textContent = 'belum ada data'; return; }
+  const max = Math.max(150, ...vals) * 1.1;
+  const px = i => ((i + (N - d.length)) / (N - 1)) * W;
+  const py = v => H - pad - (v / max) * (H - 2*pad);
+  const grad = x.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,212,255,.35)'); grad.addColorStop(1,'rgba(0,212,255,0)');
+  let started = false, first = 0, lastX = 0;
+  x.beginPath();
+  d.forEach((v,i) => { if(v == null) return; const X = px(i), Y = py(v); if(!started){ x.moveTo(X,Y); started = true; first = X; } else x.lineTo(X,Y); lastX = X; });
+  if(started){
+    x.save(); x.lineTo(lastX, H); x.lineTo(first, H); x.closePath(); x.fillStyle = grad; x.fill(); x.restore();
+    x.beginPath(); started = false;
+    d.forEach((v,i) => { if(v == null) return; const X = px(i), Y = py(v); if(!started){ x.moveTo(X,Y); started = true; } else x.lineTo(X,Y); });
+    x.strokeStyle = '#00d4ff'; x.lineWidth = 2; x.shadowColor = 'rgba(0,212,255,.6)'; x.shadowBlur = 8; x.stroke(); x.shadowBlur = 0;
+  }
+  d.forEach((v,i) => { if(v != null) return; x.fillStyle = '#ff2e4d'; x.fillRect(px(i) - 1, H - pad - 3, 3, 6); });
+  $('#graphInfo').textContent = vals.length ? `avg ${(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(0)} ms · ${d.length - vals.length} gagal` : 'semua ping gagal';
+}
+
+/* ================= AUTO MONITOR ================= */
+function toggleAuto(force){
+  S.auto = typeof force === 'boolean' ? force : !S.auto;
+  clearInterval(S.autoTimer);
+  if(S.auto){ S.autoTimer = setInterval(autoTick, 5000); log('AUTO', 'Auto monitor aktif · ping setiap 5 detik', 't-n'); autoTick(); }
+  else log('AUTO', 'Auto monitor dimatikan', 't-w');
+  const b = $('#autoBtn'); b.textContent = 'AUTO MONITOR: ' + (S.auto ? 'ON' : 'OFF'); b.classList.toggle('on', S.auto);
+  $('#autoTag').textContent = S.auto ? 'AUTO ON' : 'AUTO OFF';
+  $('#autoTag').className = 'tag ' + (S.auto ? 'ok' : '');
+}
+async function autoTick(){
+  if(S.scanning) return;
+  const r = await req(URLS.gen + '?_=' + Math.random(), {mode:'no-cors'}, 3000);
+  if(r.ok){ S.lat = r.ms; S.lossStreak = 0; pushLat(r.ms); }
+  else { S.lossStreak++; pushLat(null); }
+  if(S.lossStreak === 3) log('AUTO', '3 ping berturut-turut gagal, kemungkinan koneksi terputus', 't-c');
+  refreshMonitor();
+}
+
+/* ================= ERROR CATALOG ================= */
+const ERR = {
+  disc:    {t:'Internet Disconnected', c:'Browser melaporkan tidak ada koneksi jaringan.', fix:['Periksa Wi-Fi atau kabel Ethernet sudah tersambung.','Nyalakan ulang Wi-Fi pada perangkat.','Pada HP, coba mode pesawat selama 10 detik lalu matikan lagi.']},
+  gateway: {t:'Gateway / Internet Error', c:'Perangkat tersambung ke jaringan, tetapi tidak ada tujuan internet yang bisa dijangkau. Penyebab pastinya tidak bisa dipastikan dari browser.', fix:['Restart router dan modem (cabut daya 30 detik lalu pasang lagi).','Pastikan lampu Internet/WAN pada modem menyala.','Jika lampu internet mati, hubungi penyedia layanan (ISP).']},
+  dns:     {t:'DNS Error', c:'Nama domain tidak berhasil diresolusi, padahal server tujuan dapat dijangkau.', fix:['Ganti DNS di pengaturan perangkat atau router ke 1.1.1.1 atau 8.8.8.8.','Bersihkan cache DNS (Windows: ipconfig /flushdns).','Matikan VPN atau DNS pribadi sementara untuk menguji.']},
+  timeout: {t:'Network Timeout', c:'Sebagian permintaan melewati batas waktu tunggu.', fix:['Hentikan unduhan atau streaming besar yang sedang berjalan.','Dekatkan perangkat ke router.','Ulangi pemindaian beberapa saat lagi.']},
+  weak:    {t:'Weak Connection', c:'Kecepatan atau latensi berada di bawah ambang yang wajar.', fix:['Pindah lebih dekat ke access point.','Jauhi gangguan seperti dinding tebal atau microwave.','Gunakan pita 5 GHz jika router mendukung.']},
+  unstable:{t:'Connection Unstable', c:'Packet loss atau jitter tinggi, koneksi tidak konsisten.', fix:['Gunakan kabel Ethernet bila memungkinkan.','Ganti kanal Wi-Fi di router jika banyak jaringan di sekitar.','Periksa perangkat lain yang memakai bandwidth besar.']},
+  server:  {t:'Server Unreachable', c:'Sebagian server tujuan tidak dapat dijangkau sementara server lain bisa.', fix:['Cek status layanan tersebut di situs penyedianya.','Periksa firewall atau pemblokiran di jaringan.','Coba jaringan lain untuk memastikan masalahnya di sisi server.']},
+  link:    {t:'Link Tidak Terjangkau', c:'Satu atau lebih link yang Anda pantau tidak dapat dijangkau hari ini.', fix:['Buka link tersebut di browser untuk memastikan.','Jika hanya satu link yang gagal, kemungkinan layanan tersebut sedang bermasalah.','Bandingkan dengan hasil kemarin di tabel LINK HARIAN.']},
+  usb:     {t:'USB Connection Error', c:'Perangkat USB gagal dibuka atau tidak dikenali browser.', fix:['Gunakan kabel yang mendukung transfer data, bukan kabel charger saja.','Coba port USB lain dan hindari hub.','Di HP, pilih mode transfer file dan izinkan koneksi di layar perangkat.']}
+};
+
+/* ================= BROWSER ================= */
+function renderBrowser(){
+  const ua = navigator.userAgent;
+  const name = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'tidak dikenali';
+  S.browser = {name, platform: navigator.platform || 'tidak diketahui', lang: navigator.language, online: navigator.onLine};
+  $('#browserBox').innerHTML = `<table class="kvt">
+    <tr><th>Browser</th><td>${esc(name)}</td></tr>
+    <tr><th>Platform</th><td>${esc(S.browser.platform)}</td></tr>
+    <tr><th>Bahasa</th><td>${esc(S.browser.lang)}</td></tr>
+    <tr><th>Status online</th><td class="${S.browser.online ? 'ok' : 'bad'}">${S.browser.online ? 'ya' : 'tidak'}</td></tr>
+    <tr><th>Secure context</th><td>${window.isSecureContext ? 'ya' : 'tidak'}</td></tr></table>`;
+}
+
+/* ================= LINK HARIAN ================= */
+function renderLinks(){
+  $('#linkCount').textContent = S.links.length + ' link';
+  $('#linkList').innerHTML = S.links.length
+    ? S.links.map((u,i) => `<div><span>${esc(u)}</span><button data-rm="${i}" class="bad" style="--c:var(--r)">HAPUS</button></div>`).join('')
+    : '<p class="note">Belum ada link. Tambahkan link yang Anda pakai setiap hari.</p>';
+  refreshMonitor();
+}
+function addLink(){
+  let v = $('#linkIn').value.trim();
+  if(!v){ log('LINK', 'Masukkan link terlebih dahulu', 't-w'); return; }
+  if(!/^https?:\/\//i.test(v)) v = 'https://' + v;
+  try{ new URL(v); }catch(e){ log('LINK', 'Format link tidak valid', 't-c'); return; }
+  if(S.links.includes(v)){ log('LINK', 'Link sudah ada di daftar', 't-w'); return; }
+  S.links.push(v); saveLinks(); $('#linkIn').value = '';
+  log('LINK', `ditambahkan: ${v}`, 't-d'); renderLinks();
+}
+function removeLink(i){
+  const u = S.links[i]; S.links.splice(i,1); saveLinks();
+  log('LINK', `dihapus: ${u}`, 't-w'); renderLinks();
+}
+async function checkLinks(){
+  if(!S.links.length){ log('LINK', 'Belum ada link untuk diperiksa', 't-w'); $('#linkOut').innerHTML = ''; return []; }
+  log('LINK', `Checking ${S.links.length} link...`, 't-n');
+  const today = dayKey(0), yest = dayKey(1);
+  const days = loadDays(), prev = days[yest] || {}, cur = {};
+  for(const url of S.links){
+    const r = await req(url, {mode:'no-cors'}, 6000);
+    cur[url] = {ok: r.ok, ms: r.ok ? Math.round(r.ms) : null, t: ts()};
+    log('LINK', `${url} → ${r.ok ? 'terjangkau ' + Math.round(r.ms) + ' ms' : (r.timeout ? 'timeout' : 'tidak terjangkau')}`, r.ok ? 't-d' : 't-c');
+  }
+  days[today] = {...(days[today] || {}), ...cur};
+  saveDays(days);
+  const rows = S.links.map(url => {
+    const p = prev[url], c = cur[url];
+    let chg;
+    if(!p) chg = 'belum ada data kemarin';
+    else if(p.ok === c.ok) chg = 'sama';
+    else chg = `berubah: ${p.ok ? 'OK' : 'gagal'} → ${c.ok ? 'OK' : 'gagal'}`;
+    const fmt = x => x ? (x.ok ? `<span class="ok">OK · ${x.ms} ms</span>` : '<span class="bad">gagal</span>') : '<span class="note">—</span>';
+    return `<tr><td>${esc(url)}</td><td>${fmt(p)}</td><td>${fmt(c)}</td><td class="${chg.startsWith('berubah') ? 'warn' : ''}">${chg}</td></tr>`;
+  }).join('');
+  $('#linkOut').innerHTML = `<table><tr><th>Link</th><th>Kemarin (${yest})</th><th>Hari ini (${today})</th><th>Perubahan</th></tr>${rows}</table>
+    <p class="note">Respons dianggap terjangkau bila server menjawab, berapa pun kode status-nya.</p>`;
+  const okN = S.links.filter(u => cur[u].ok).length;
+  log('LINK', `ringkasan: ${okN}/${S.links.length} terjangkau · pembanding ${yest} vs ${today}`, okN === S.links.length ? 't-s' : 't-w');
+  return S.links.map(u => ({url:u, ok:cur[u].ok, ms:cur[u].ms, prevOk: prev[u] ? prev[u].ok : null}));
+}
+
+/* ================= SCAN ================= */
+function setBusy(b){ ['scan','diag','test','site','checklinks'].forEach(a => { const el = document.querySelector(`[data-act="${a}"]`); if(el) el.disabled = b; }); }
+
+async function runScan(mode){
+  if(S.scanning) return;
+  S.scanning = true; setBusy(true);
+  const tStart = new Date();
+  log('WAKTU', 'mulai scan: ' + fmtDT(tStart), 't-u');
+  await logDevices();
+  logTopApps();
+  const quick = mode === 'quick';
+  const R = {errors:[], timeouts:0, mode};
+  try{
+    log('SERVER', quick ? 'Initializing Connection Diagnostic...' : 'Initializing Network Diagnostic...', 't-s');
+
+    /* 1. browser */
+    renderBrowser();
+    log('BROWSER', `${S.browser.name} · ${S.browser.platform} · online ${S.browser.online ? 'ya' : 'tidak'}`, 't-u');
+
+    /* 2. link harian */
+    R.links = await checkLinks();
+    R.linkFail = R.links.filter(l => !l.ok).length;
+    if(R.linkFail) R.errors.push('link');
+
+    /* 3. jaringan */
+    refreshStatus(true);
+    log('NETWORK', `navigator.onLine = ${S.online}`, S.online ? 't-s' : 't-c');
+    if(S.conn) log('NETWORK', `Tipe ${S.conn.type} · ${S.conn.eff} · RTT ${S.conn.rtt ?? '—'} ms`, 't-u');
+    log('NETWORK', 'Testing Internet Connection...', 't-n');
+    const p = await pings(quick ? 3 : 8);
+    S.lat = p.lat; S.jit = p.jit; S.loss = p.loss;
+    R.lat = p.lat; R.jit = p.jit; R.loss = p.loss;
+    log('PING', p.lat != null ? `rata-rata ${p.lat.toFixed(0)} ms · jitter ${p.jit != null ? p.jit.toFixed(0) : '—'} ms · loss ${p.loss.toFixed(0)}%` : 'tidak ada respons', p.lat != null ? 't-d' : 't-c');
+
+    /* 4. DNS */
+    log('DNS', 'Checking DNS Resolution...', 't-n');
+    const names = ['google.com','cloudflare.com','wikipedia.org'].slice(0, quick ? 1 : 3);
+    let okDns = 0;
+    for(const n of names){
+      const r = await req(`${URLS.doh}?name=${n}&type=A`, {headers:{accept:'application/dns-json'}}, 4000);
+      let good = false;
+      if(r.ok){ try{ const j = await r.res.json(); good = j.Status === 0 && Array.isArray(j.Answer) && j.Answer.length > 0; }catch(e){} }
+      if(!r.ok && r.timeout) R.timeouts++;
+      if(good) okDns++;
+      log('DNS', `${n} → ${good ? 'resolved (' + r.ms.toFixed(0) + ' ms)' : (r.ok ? 'tidak ada jawaban' : 'gagal dihubungi')}`, good ? 't-d' : 't-c');
+    }
+    R.dns = okDns === names.length ? 'OK' : okDns ? 'Sebagian' : 'Gagal';
+    R.dnsOk = okDns; S.dns = R.dns;
+
+    /* 5. server */
+    log('SERVER', 'Checking server reachability...', 't-n');
+    const eps = [['cloudflare', URLS.trace, {}], ['google', URLS.gen + '?_=' + Math.random(), {mode:'no-cors'}], ['wikipedia', URLS.wiki, {mode:'no-cors'}]].slice(0, quick ? 2 : 3);
+    R.reach = [];
+    for(const [name, url, opt] of eps){
+      const r = await req(url, opt, 5000);
+      if(!r.ok && r.timeout) R.timeouts++;
+      R.reach.push({name, ok: r.ok});
+      log('SERVER', `${name} → ${r.ok ? 'terjangkau (' + r.ms.toFixed(0) + ' ms)' : 'tidak terjangkau'}`, r.ok ? 't-d' : 't-c');
+    }
+
+    /* 6. kecepatan */
+    if(!quick){
+      log('SPEED', 'Testing download (2 MB)...', 't-n');
+      try{
+        const t0 = performance.now(), r = await fetch(URLS.down, {cache:'no-store'});
+        const buf = await r.arrayBuffer(), sec = (performance.now() - t0) / 1000;
+        R.down = buf.byteLength * 8 / sec / 1e6;
+        log('SPEED', `download ${R.down.toFixed(2)} Mbps`, 't-u');
+      }catch(e){ R.down = null; log('SPEED', 'download gagal (jaringan atau pembatasan CORS)', 't-w'); }
+      log('SPEED', 'Testing upload (1 MB)...', 't-n');
+      try{
+        const body = new Blob([new Uint8Array(1000000)]), t0 = performance.now();
+        await fetch(URLS.up, {method:'POST', body, cache:'no-store'});
+        R.up = 8 / ((performance.now() - t0) / 1000);
+        log('SPEED', `upload ${R.up.toFixed(2)} Mbps`, 't-u');
+      }catch(e){ R.up = null; log('SPEED', 'upload gagal (jaringan atau pembatasan CORS)', 't-w'); }
+    }
+
+    /* 7. USB / kabel: buka perangkat yang sudah diizinkan */
+    await refreshUSB(true);
+    const badDev = Object.values(S.devStatus).some(s => s.startsWith('gagal'));
+    if(S.usbErr || badDev) R.errors.push('usb');
+
+    /* 8. analisis */
+    const anyReach = R.reach.some(x => x.ok), anyPing = p.samples.length > 0;
+    if(!S.online) R.errors.push('disc');
+    else if(!anyPing && !anyReach) R.errors.push('gateway');
+    if(anyPing && R.dnsOk === 0) R.errors.push('dns');
+    if(R.timeouts > 0) R.errors.push('timeout');
+    if(anyReach && R.reach.some(x => !x.ok)) R.errors.push('server');
+    const eff = S.conn ? S.conn.eff : null;
+    if(['slow-2g','2g','3g'].includes(eff) || (S.conn && S.conn.rtt > 300) || (R.down != null && R.down < 1)) R.errors.push('weak');
+    if(R.loss > 5 || (R.jit != null && R.jit > 50)) R.errors.push('unstable');
+
+    R.online = S.online; R.anyPing = anyPing;
+    S.lastScan = ts(); R.time = S.lastScan; S.last = R;
+    renderResults(R, quick); renderErrors(R.errors); refreshMonitor();
+    history.push({t:S.lastScan, mode, errors:R.errors.map(k=>ERR[k].t), lat:R.lat, loss:R.loss, dns:R.dns, down:R.down, up:R.up});
+    saveHistory(); renderHistory();
+
+    /* 9. grafik baru muncul setelah semua pengecekan selesai */
+    showGraph();
+    log('RESULT', R.errors.length ? `Diagnostic Completed · ${R.errors.length} kemungkinan masalah terdeteksi` : 'Diagnostic Completed · tidak ada error terdeteksi', R.errors.length ? 't-w' : 't-s');
+  }catch(e){
+    log('RESULT', 'Scan dihentikan karena error: ' + e.message, 't-c');
+  }finally{
+    S.scanning = false; setBusy(false);
+    log('WAKTU', 'selesai scan: ' + fmtDT(new Date()) + ' · durasi ' + ((Date.now() - tStart) / 1000).toFixed(1) + ' s', 't-s');
+    saveRecord(); flushExport(); showRunner();
+  }
+}
+
+function renderResults(R, quick){
+  const rows = [
+    ['Status internet', R.online ? (R.anyPing ? 'Terhubung' : 'Tidak terhubung') : 'Offline', R.online && R.anyPing ? 'ok' : 'bad'],
+    ['Jenis koneksi', S.conn ? `${S.conn.type} · ${S.conn.eff}` : 'tidak diketahui', ''],
+    ['Latensi rata-rata', R.lat != null ? R.lat.toFixed(0) + ' ms' : '—', ''],
+    ['Jitter', R.jit != null ? R.jit.toFixed(0) + ' ms' : '—', ''],
+    ['Packet loss (estimasi HTTP)', R.loss.toFixed(0) + '%', R.loss > 5 ? 'warn' : 'ok'],
+    ['DNS resolution', R.dns, R.dns === 'OK' ? 'ok' : 'bad'],
+    ['Server reachability', R.reach.map(x => `${x.name}: ${x.ok ? 'OK' : 'gagal'}`).join(' · '), ''],
+    ['Link harian', R.links && R.links.length ? `${R.links.length - (R.linkFail||0)} dari ${R.links.length} terjangkau` : 'belum ada link', R.linkFail ? 'warn' : ''],
+    ['Download', quick ? 'tidak diukur (diagnosa cepat)' : (R.down != null ? R.down.toFixed(2) + ' Mbps' : 'gagal diukur'), ''],
+    ['Upload', quick ? 'tidak diukur (diagnosa cepat)' : (R.up != null ? R.up.toFixed(2) + ' Mbps' : 'gagal diukur'), ''],
+    ['Perangkat USB', Object.keys(S.devStatus).length ? Object.values(S.devStatus).join(' · ') : 'tidak ada perangkat diizinkan', ''],
+    ['Waktu scan', R.time, '']
+  ];
+  $('#results').innerHTML = `<table class="kvt">${rows.map(([k,v,c]) => `<tr><th>${k}</th><td class="${c}">${esc(v)}</td></tr>`).join('')}</table>
+    <p class="note">Packet loss dihitung dari HTTP, bukan ICMP. DNS diuji lewat DNS-over-HTTPS, bukan DNS perangkat.</p>`;
+}
+const PHONE_FIX = {
+  disc:    ['Cek Wi-Fi atau data seluler di pengaturan HP.','Nyalakan ulang HP, atau coba mode pesawat 10 detik lalu matikan lagi.','Pastikan kuota dan APN data seluler aktif.'],
+  gateway: ['Matikan lalu nyalakan Wi-Fi HP, lalu lupakan dan sambungkan ulang jaringannya.','Restart router atau modem bila memakai Wi-Fi rumah.','Coba pindah ke data seluler untuk memastikan masalah ada di jaringan Wi-Fi.'],
+  dns:     ['Android: Pengaturan > Koneksi > DNS pribadi, pilih dns.google atau one.one.one.one.','iPhone: Pengaturan Wi-Fi > ikon (i) pada jaringan > Configure DNS, pilih Manual dan isi 1.1.1.1.','Matikan VPN sementara untuk menguji.'],
+  timeout: ['Tutup aplikasi yang sedang mengunduh atau streaming.','Dekatkan HP ke router.','Ulangi pemindaian beberapa saat lagi.'],
+  weak:    ['Pindah ke area dengan sinyal lebih kuat.','Matikan penghemat data bila sedang aktif.','Gunakan Wi-Fi jika tersedia.'],
+  unstable:['Matikan penghemat baterai yang membatasi data latar belakang.','Tutup aplikasi yang memakai data besar.','Bandingkan Wi-Fi dengan data seluler untuk melihat mana yang lebih stabil.'],
+  usb:     ['Gunakan kabel data, bukan kabel charge saja.','Di HP, pilih mode transfer file dan izinkan koneksi di layar.','Colokkan langsung ke laptop tanpa hub.']
+};
+const fixList = k => (deviceKind() === 'handphone' && PHONE_FIX[k]) ? PHONE_FIX[k] : ERR[k].fix;
+
+function renderErrors(list){
+  const box = $('#errors');
+  const tag = `<p class="note" style="margin:0 0 8px">Saran disesuaikan untuk ${deviceKind() === 'handphone' ? 'handphone' : 'laptop'}.</p>`;
+  if(!list.length){ box.innerHTML = tag + '<div class="err good"><h4 class="ok">Tidak ada error terdeteksi</h4><p>Semua pengujian yang dijalankan berhasil dalam batas normal.</p></div>'; return; }
+  box.innerHTML = tag + list.map(k => `<div class="err"><h4 class="bad">${ERR[k].t}</h4><p>${ERR[k].c}</p><ul>${fixList(k).map(f => `<li>${esc(f)}</li>`).join('')}</ul></div>`).join('');
+}
+function renderHistory(){
+  $('#histCount').textContent = history.length + ' scan';
+  if(!history.length){ $('#history').innerHTML = '<p class="note">Riwayat tersimpan di browser ini (maks 200 scan terakhir).</p>'; return; }
+  $('#history').innerHTML = `<table><tr><th>Waktu</th><th>Mode</th><th>Latensi</th><th>Loss</th><th>DNS</th><th>Download</th><th>Hasil</th></tr>${
+    history.slice(-200).reverse().map(h => `<tr><td>${h.t}</td><td>${h.mode==='quick'?'cepat':'penuh'}</td>
+      <td>${h.lat != null ? h.lat.toFixed(0)+' ms' : '—'}</td><td>${h.loss.toFixed(0)}%</td><td>${h.dns}</td>
+      <td>${h.down != null ? h.down.toFixed(2)+' Mbps' : '—'}</td>
+      <td>${h.errors.length ? esc(h.errors.join(', ')) : '<span class="ok">normal</span>'}</td></tr>`).join('')}</table>`;
+}
+
+/* ================= TEST INTERNET & CEK WEBSITE ================= */
+async function testInternet(){
+  log('NETWORK', 'Testing Internet Connection...', 't-n');
+  const r = await req(URLS.trace, {}, 5000);
+  if(r.ok){ S.lat = r.ms; pushLat(r.ms); log('NETWORK', `internet OK · ${r.ms.toFixed(0)} ms`, 't-d'); }
+  else log('NETWORK', `internet gagal · ${r.timeout ? 'timeout' : 'tidak dapat dihubungi'}`, 't-c');
+  $('#results').innerHTML = `<table class="kvt"><tr><th>Hasil TEST INTERNET</th><td class="${r.ok ? 'ok' : 'bad'}">${r.ok ? 'Terhubung · ' + r.ms.toFixed(0) + ' ms' : (r.timeout ? 'Timeout' : 'Tidak terhubung')}</td></tr>
+    <tr><th>Waktu uji</th><td>${ts()}</td></tr></table>`;
+  refreshMonitor();
+}
+async function checkSite(){
+  let raw = $('#siteIn').value.trim();
+  if(!raw){ $('#siteOut').innerHTML = '<p class="note bad">Masukkan domain terlebih dahulu.</p>'; return; }
+  if(!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+  let host; try{ host = new URL(raw).hostname; }catch(e){ $('#siteOut').innerHTML = '<p class="note bad">Format alamat tidak valid.</p>'; return; }
+  log('SITE', `Checking ${host}...`, 't-n');
+  const d = await req(`${URLS.doh}?name=${encodeURIComponent(host)}&type=A`, {headers:{accept:'application/dns-json'}}, 4000);
+  let dnsOk = false; if(d.ok){ try{ const j = await d.res.json(); dnsOk = j.Status === 0 && (j.Answer||[]).length > 0; }catch(e){} }
+  const w = await req(raw, {mode:'no-cors'}, 8000);
+  log('SITE', `${host} · DNS ${dnsOk ? 'OK' : 'gagal'} · ${w.ok ? 'terjangkau ' + w.ms.toFixed(0) + ' ms' : (w.timeout ? 'timeout' : 'tidak terjangkau')}`, w.ok && dnsOk ? 't-d' : 't-c');
+  $('#siteOut').innerHTML = `<table class="kvt">
+    <tr><th>Domain</th><td>${esc(host)}</td></tr>
+    <tr><th>DNS</th><td class="${dnsOk ? 'ok' : 'bad'}">${dnsOk ? 'Resolved' : 'Gagal diresolusi'}</td></tr>
+    <tr><th>Keterjangkauan</th><td class="${w.ok ? 'ok' : 'bad'}">${w.ok ? 'Terjangkau · ' + w.ms.toFixed(0) + ' ms' : (w.timeout ? 'Timeout' : 'Tidak terjangkau')}</td></tr>
+    <tr><th>Waktu uji</th><td>${ts()}</td></tr></table>
+    <p class="note">Isi halaman dari domain lain tidak bisa dibaca browser, jadi yang diukur hanya DNS dan keterjangkauan.</p>`;
+}
+
+/* ================= USB & KABEL ================= */
+const devKey = d => `${d.vendorId}:${d.productId}:${d.serialNumber || ''}`;
+const devName = d => `${brandOf(d)} ${d.productName || 'perangkat'} (VID ${hex(d.vendorId)} · PID ${hex(d.productId)})`;
+
+async function tryOpen(dev){
+  const k = devKey(dev);
+  S.devStatus[k] = 'menghubungkan…';
+  log('USB', `connecting ${devName(dev)}...`, 't-n'); renderTab();
+  try{
+    await dev.open();
+    S.devStatus[k] = 'terhubung';
+    log('USB', `connected: ${dev.productName || 'perangkat'} dibuka`, 't-s');
+    log('USB', `USB ${dev.usbVersionMajor}.${dev.usbVersionMinor} · kelas ${dev.deviceClass} · ${dev.configurations ? dev.configurations.length : 0} konfigurasi · SN ${dev.serialNumber || '—'}`, 't-d');
+    try{ await dev.close(); }catch(e){}
+  }catch(e){
+    S.devStatus[k] = 'gagal: ' + e.message;
+    log('USB', `gagal membuka ${dev.productName || 'perangkat'}: ${e.message}`, 't-c');
+  }
+  renderTab(); renderRacks();
+}
+async function refreshUSB(scanOpen){
+  if(!('usb' in navigator) || !window.isSecureContext){
+    S.usb = !('usb' in navigator) ? 'tidak didukung' : 'konteks tidak aman';
+    S.usbDevs = []; renderTab(); refreshMonitor(); return;
+  }
+  try{
+    S.usbDevs = await navigator.usb.getDevices(); S.usbErr = null;
+    S.usb = S.usbDevs.length ? `${S.usbDevs.length} perangkat diizinkan` : 'tidak ada perangkat diizinkan';
+    if(scanOpen){ for(const d of S.usbDevs){ await tryOpen(d); } }
+  }catch(e){ S.usbErr = e.message; S.usb = 'error'; log('USB', 'Error: ' + e.message, 't-c'); }
+  renderTab(); refreshMonitor();
+}
+async function permitUSB(){
+  if(!('usb' in navigator) || !window.isSecureContext){ renderTab(); return; }
+  try{
+    const d = await navigator.usb.requestDevice({filters:[]});
+    log('USB', `izin diberikan: ${devName(d)}`, 't-d');
+    S.usbDevs = await navigator.usb.getDevices();
+    await tryOpen(d);
+  }catch(e){
+    if(e.name === 'NotFoundError') log('USB', 'Pemilihan perangkat dibatalkan', 't-w');
+    else { S.usbErr = e.message; log('USB', 'Error: ' + e.message, 't-c'); }
+  }
+  refreshMonitor();
+}
+async function startServer(){
+  if(S.serverBusy) return;
+  S.serverBusy = true;
+  const btn = $('#serverBtn'); btn.disabled = true; btn.textContent = 'SERVER BERJALAN…';
+  const usbOk = 'usb' in navigator, secure = window.isSecureContext;
+  try{
+    log('SERVER', 'Mulai server diagnostik...', 't-s');
+    const tS = new Date();
+    log('WAKTU', 'mulai server: ' + fmtDT(tS), 't-u');
+    log('SERVER', `protokol: ${location.protocol} · secure context: ${secure ? 'ya' : 'tidak'} · WebUSB: ${usbOk ? 'tersedia' : 'tidak tersedia'}`, 't-u');
+    if(location.protocol === 'file:') log('SERVER', 'Dibuka dari file://. Jika browser memblokir WebUSB, jalankan lewat http://localhost (lihat catatan di bawah).', 't-w');
+
+    /* USB-C: minta izin (harus langsung dari klik, sebelum await apa pun) */
+    if(S.tab === 'usb'){
+      if(!usbOk || !secure){
+        log('USB', 'Tab USB-C: WebUSB tidak bisa dipakai di konteks ini, koneksi dilewati.', 't-c');
+      }else{
+        log('USB', 'Tab USB-C aktif. Pilih perangkat di jendela browser untuk menghubungkan...', 't-n');
+        try{
+          const d = await navigator.usb.requestDevice({filters:[]});
+          log('USB', `izin diberikan: ${devName(d)}`, 't-d');
+        }catch(e){
+          if(e.name === 'NotFoundError') log('USB', 'Pemilihan perangkat dibatalkan', 't-w');
+          else log('USB', 'Error izin: ' + e.message, 't-c');
+        }
+      }
+    }else{
+      log('USB', 'Tab USB-C belum dipilih, jadi tidak meminta perangkat baru. Perangkat yang sudah diizinkan tetap diperiksa.', 't-w');
+    }
+
+    /* jalankan pengecekan jaringan + buka semua perangkat yang diizinkan */
+    await runScan('quick');
+
+    /* ringkasan hasil di terminal */
+    const R = S.last;
+    if(R){
+      log('RESULT', `ringkasan · latensi ${R.lat != null ? R.lat.toFixed(0) + ' ms' : '—'} · loss ${R.loss.toFixed(0)}% · DNS ${R.dns} · link ${R.links.length - (R.linkFail||0)}/${R.links.length} OK`, 't-u');
+      log('RESULT', `USB · ${Object.keys(S.devStatus).length ? Object.values(S.devStatus).join(' | ') : 'tidak ada perangkat diizinkan'}`, 't-u');
+      log('RESULT', R.errors.length ? `error: ${R.errors.map(k => ERR[k].t).join(', ')}` : 'tidak ada error terdeteksi', R.errors.length ? 't-w' : 't-s');
+    }
+    if(S.last){
+      log('LINK', `daftar link website (${S.last.links.length}):`, 't-n');
+      if(!S.last.links.length) log('LINK', 'belum ada link. Tambahkan di LINK HARIAN.', 't-w');
+      S.last.links.forEach(l => log('LINK', `${l.url} → ${l.ok ? 'terjangkau' + (l.ms != null ? ' ' + l.ms + ' ms' : '') : 'tidak terjangkau'}`, l.ok ? 't-d' : 't-c'));
+    }
+    const siteVal = $('#siteIn').value.trim();
+    if(siteVal){
+      log('SITE', `cek website: ${siteVal}`, 't-n');
+      await checkSite();
+    }else log('SITE', 'cek website belum diisi. Masukkan domain di CEK WEBSITE lalu jalankan lagi.', 't-w');
+    if(S.last){ logDataInternet(); renderDiagram(); renderPie(); renderCharts(); renderAdvice(); }
+    getLocation();
+    if(S.targetIp) await probeIP(S.targetIp);
+    await logBattery();
+    playRacks();
+    log('SERVER', 'Server selesai. Hasil sudah ditampilkan di terminal dan panel.', 't-s');
+    $('#histCard').classList.remove('hidden');
+    const termConn = Object.values(S.devStatus).filter(v => v.startsWith('terhubung')).length;
+    log('USB', `server aktif · ${S.usbDevs.length} perangkat di kabel · ${termConn} terhubung`, 't-c');
+    log('SERVER INFO', `protokol ${location.protocol} · zona ${tzInfo()} · IP ${S.targetIp || 'belum diisi'} · pemeriksaan ${S.last ? 'selesai' : 'belum'}`, 't-u');
+    showClearPrompt();
+    log('WAKTU', 'selesai server: ' + fmtDT(new Date()) + ' · durasi ' + ((Date.now() - tS) / 1000).toFixed(1) + ' s', 't-s');
+  }catch(e){
+    log('SERVER', 'Server berhenti karena error: ' + e.message, 't-c');
+  }finally{
+    S.serverBusy = false; btn.disabled = false; btn.textContent = 'MULAI SERVER';
+    flushExport();
+  }
+}
+
+function logDataInternet(){
+  const R = S.last, c = S.conn;
+  log('DATA', `tipe ${c ? c.type : 'tidak diketahui'} · efektif ${c ? c.eff : '—'} · RTT ${c && c.rtt != null ? c.rtt + ' ms' : '—'} · downlink (estimasi) ${c && c.down != null ? c.down + ' Mbps' : '—'}`, 't-u');
+  log('DATA', `latensi ${R.lat != null ? R.lat.toFixed(0) + ' ms' : '—'} · jitter ${R.jit != null ? R.jit.toFixed(0) + ' ms' : '—'} · loss ${R.loss.toFixed(0)}%`, 't-u');
+  log('DATA', `download ${R.down != null ? R.down.toFixed(2) + ' Mbps' : 'tidak diukur'} · upload ${R.up != null ? R.up.toFixed(2) + ' Mbps' : 'tidak diukur'}`, 't-u');
+  log('DATA', `DNS ${R.dns} · server ${R.reach.map(x => x.name + ' ' + (x.ok ? 'OK' : 'gagal')).join(', ')}`, 't-u');
+}
+function renderDiagram(placeholder){
+  const R = S.last;
+  if(!R && !placeholder) return;
+  $('#diagCard').classList.remove('hidden');
+  if(!R){ const c0=$('#diag'), r0=c0.getBoundingClientRect(), dp=window.devicePixelRatio||1; c0.width=r0.width*dp; c0.height=r0.height*dp; const x0=c0.getContext('2d'); x0.setTransform(dp,0,0,dp,0,0); x0.clearRect(0,0,r0.width,r0.height); x0.fillStyle='#5d6b84'; x0.font='12px ui-monospace,Consolas,monospace'; x0.fillText('belum ada data · tekan MULAI SERVER untuk membuat diagram', 12, r0.height/2); $('#diagInfo').textContent='diagram akan muncul setelah MULAI SERVER selesai'; return; }
+  const c = $('#diag'), dpr = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = r.width, H = r.height, reachPct = R.reach.length ? R.reach.filter(v => v.ok).length / R.reach.length * 100 : 0;
+  const dnsPct = R.dns === 'OK' ? 100 : R.dns === 'Sebagian' ? 50 : 0;
+  const col = {ok:'#39ff14', warn:'#ffb020', bad:'#ff2e4d'};
+  const items = [
+    ['Latensi (ms)', R.lat, 300, v => v <= 100 ? 'ok' : v <= 200 ? 'warn' : 'bad', v => v.toFixed(0) + ' ms'],
+    ['Jitter (ms)', R.jit, 100, v => v <= 20 ? 'ok' : v <= 50 ? 'warn' : 'bad', v => v.toFixed(0) + ' ms'],
+    ['Packet loss (%)', R.loss, 100, v => v <= 1 ? 'ok' : v <= 5 ? 'warn' : 'bad', v => v.toFixed(0) + '%'],
+    ['Download (Mbps)', R.down, 100, v => v >= 10 ? 'ok' : v >= 2 ? 'warn' : 'bad', v => v.toFixed(2)],
+    ['Upload (Mbps)', R.up, 100, v => v >= 5 ? 'ok' : v >= 1 ? 'warn' : 'bad', v => v.toFixed(2)],
+    ['DNS (%)', dnsPct, 100, v => v === 100 ? 'ok' : v > 0 ? 'warn' : 'bad', v => v + '%'],
+    ['Server terjangkau (%)', reachPct, 100, v => v === 100 ? 'ok' : v >= 50 ? 'warn' : 'bad', v => Math.round(v) + '%']
+  ];
+  x.clearRect(0, 0, W, H);
+  const rowH = (H - 20) / items.length, labelW = 170, barX = labelW + 10, barW = W - barX - 90;
+  items.forEach(([label, v, max, cls, fmt], i) => {
+    const y = 10 + i * rowH + rowH / 2;
+    x.font = '12px ui-monospace, Consolas, monospace';
+    x.fillStyle = '#9fb2c6'; x.textBaseline = 'middle'; x.fillText(label, 10, y);
+    x.fillStyle = 'rgba(255,255,255,.05)'; x.fillRect(barX, y - 7, barW, 14);
+    if(v == null){ x.fillStyle = '#5d6b84'; x.fillText('—', barX + 6, y); return; }
+    const color = col[cls(v)];
+    x.fillStyle = color; x.shadowColor = color; x.shadowBlur = 10;
+    x.fillRect(barX, y - 7, Math.max(2, Math.min(1, v / max) * barW), 14);
+    x.shadowBlur = 0;
+    x.fillText(fmt(v), barX + barW + 10, y);
+  });
+  $('#diagInfo').textContent = 'diagram dari hasil MULAI SERVER terakhir · ' + R.time;
+}
+function drawDonut(id, parts, centerText, prog){
+  const c = $('#' + id), dpr = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+  if(!r.width) return;
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = r.width, H = r.height, cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 16, ring = 20;
+  x.clearRect(0, 0, W, H);
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2);
+  x.strokeStyle = 'rgba(255,255,255,.06)'; x.lineWidth = ring; x.stroke();
+  const total = parts.reduce((a, p) => a + p.value, 0);
+  if(total > 0){
+    let start = -Math.PI / 2;
+    parts.forEach(p => {
+      if(p.value <= 0) return;
+      const a = p.value / total * Math.PI * 2;
+      x.beginPath(); x.arc(cx, cy, R, start, start + a * prog);
+      x.strokeStyle = p.color; x.lineWidth = ring; x.lineCap = 'butt';
+      x.shadowColor = p.color; x.shadowBlur = 12; x.stroke(); x.shadowBlur = 0;
+      start += a;
+    });
+  }
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = '#e6f0ff'; x.font = 'bold 26px ui-monospace, Consolas, monospace';
+  x.fillText(centerText, cx, cy - 4);
+  x.fillStyle = '#5d6b84'; x.font = '11px ui-monospace, Consolas, monospace';
+  x.fillText(total > 0 ? 'dari ' + total.toFixed(0) + (parts.some(p => p.unit === '%') ? '%' : '') : 'belum ada data', cx, cy + 20);
+}
+function legendHTML(parts){
+  return parts.map(p => `<span style="color:${p.color}"><i style="background:${p.color}"></i>${esc(p.label)} · ${p.value.toFixed(p.value % 1 ? 1 : 0)}${p.unit || ''}</span>`).join('');
+}
+function renderPie(placeholder){
+  const R = S.last;
+  if(!R && !placeholder) return;
+  let p1 = [], p2 = [], c1 = '—', c2 = '—', info = 'diagram akan terisi setelah MULAI SERVER selesai';
+  if(R){
+    const okPing = Math.max(0, 100 - R.loss);
+    p1 = [{label:'berhasil', value:okPing, color:'#39ff14', unit:'%'}, {label:'gagal', value:R.loss, color:'#ff2e4d', unit:'%'}];
+    c1 = Math.round(okPing) + '%';
+    const reachOk = R.reach.filter(v => v.ok).length, reachTot = R.reach.length;
+    const linkTot = R.links.length, linkOk = linkTot - (R.linkFail || 0);
+    const svcOk = reachOk + linkOk, svcTot = reachTot + linkTot;
+    p2 = [{label:'terjangkau', value:svcOk, color:'#b44dff'}, {label:'tidak terjangkau', value:svcTot - svcOk, color:'#ff2e4d'}];
+    c2 = svcTot ? Math.round(svcOk / svcTot * 100) + '%' : '—';
+    info = `server ${reachOk}/${reachTot} terjangkau · link ${linkOk}/${linkTot} terjangkau · pengukuran ${R.time}`;
+  }else{
+    p1 = [{label:'berhasil', value:0, color:'#39ff14', unit:'%'}];
+    p2 = [{label:'terjangkau', value:0, color:'#b44dff'}];
+  }
+  $('#pie1Legend').innerHTML = legendHTML(p1.length ? p1 : [{label:'belum ada data', value:0, color:'#5d6b84'}]);
+  $('#pie2Legend').innerHTML = legendHTML(p2.length ? p2 : [{label:'belum ada data', value:0, color:'#5d6b84'}]);
+  $('#pieInfo').textContent = info;
+  const t0 = performance.now();
+  const step = now => {
+    const p = Math.min(1, (now - t0) / 1000), e = 1 - Math.pow(1 - p, 3);
+    drawDonut('pie1', p1, c1, e);
+    drawDonut('pie2', p2, c2, e);
+    if(p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function prepC(id){
+  const c = $('#' + id), r = c.getBoundingClientRect();
+  if(!r.width) return null;
+  const dpr = window.devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {x, W: r.width, H: r.height};
+}
+function chartMetrics(R){
+  const reachPct = R.reach.length ? R.reach.filter(v => v.ok).length / R.reach.length * 100 : 0;
+  return [
+    {n:'Latensi', v:R.lat, max:300, u:'ms', c:'#00d4ff'},
+    {n:'Jitter', v:R.jit, max:100, u:'ms', c:'#b44dff'},
+    {n:'Loss', v:R.loss, max:100, u:'%', c:'#ff2e4d'},
+    {n:'Download', v:R.down, max:100, u:'Mbps', c:'#39ff14'},
+    {n:'Upload', v:R.up, max:100, u:'Mbps', c:'#ffb020'},
+    {n:'Server', v:reachPct, max:100, u:'%', c:'#00d4ff'}
+  ];
+}
+function stateColor(n){ return n <= 0.35 ? '#39ff14' : n <= 0.7 ? '#ffb020' : '#ff2e4d'; }
+function drawMetricChart(p){
+  const C = prepC('cMetric'); if(!C) return; const {x, W, H} = C;
+  x.clearRect(0, 0, W, H);
+  const R = S.last, items = R ? chartMetrics(R) : [];
+  const pad = 46, gx = (W - pad * 2) / Math.max(1, items.length - 1), base = H - 40;
+  x.strokeStyle = '#1a2236'; x.lineWidth = 1;
+  for(let i = 0; i <= 4; i++){ const y = base - (base - 20) * i / 4; x.beginPath(); x.moveTo(pad, y); x.lineTo(W - pad, y); x.stroke(); }
+  if(!items.length){ x.fillStyle = '#5d6b84'; x.font = '12px ui-monospace, Consolas, monospace'; x.fillText('belum ada data', pad, H / 2); return; }
+  const pts = items.map((it, i) => ({x: pad + i * gx, y: base - Math.min(1, (it.v || 0) / it.max) * (base - 20) * p, it}));
+  x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(q.x, q.y) : x.moveTo(q.x, q.y));
+  x.strokeStyle = '#00d4ff'; x.lineWidth = 2.5; x.shadowColor = '#00d4ff'; x.shadowBlur = 10; x.stroke(); x.shadowBlur = 0;
+  pts.forEach(q => {
+    x.beginPath(); x.arc(q.x, q.y, 5, 0, Math.PI * 2); x.fillStyle = q.it.c; x.shadowColor = q.it.c; x.shadowBlur = 12; x.fill(); x.shadowBlur = 0;
+    x.fillStyle = '#c4d3e3'; x.font = '11px ui-monospace, Consolas, monospace'; x.textAlign = 'center';
+    x.fillText(q.it.n, q.x, H - 16);
+    if(q.it.v != null) x.fillText(q.it.v.toFixed(q.it.u === '%' ? 0 : 1) + q.it.u, q.x, q.y - 12);
+  });
+  $('#metricInfo').textContent = 'metrik dari MULAI SERVER · ' + R.time;
+}
+function drawColumnChart(p){
+  const C = prepC('cColumn'); if(!C) return; const {x, W, H} = C;
+  x.clearRect(0, 0, W, H);
+  const R = S.last, items = R ? chartMetrics(R) : [];
+  if(!items.length){ x.fillStyle = '#5d6b84'; x.font = '12px ui-monospace, Consolas, monospace'; x.fillText('belum ada data', 20, H / 2); return; }
+  const base = H - 36, slot = (W - 40) / items.length, bw = slot * 0.5;
+  items.forEach((it, i) => {
+    const n = Math.min(1, (it.v || 0) / it.max), hh = (base - 24) * n * p, bx = 20 + i * slot + (slot - bw) / 2;
+    const col = stateColor(n);
+    const g = x.createLinearGradient(0, base - hh, 0, base);
+    g.addColorStop(0, col); g.addColorStop(1, 'rgba(255,255,255,.05)');
+    x.fillStyle = g; x.shadowColor = col; x.shadowBlur = 14;
+    x.fillRect(bx, base - hh, bw, hh); x.shadowBlur = 0;
+    x.fillStyle = '#c4d3e3'; x.font = '11px ui-monospace, Consolas, monospace'; x.textAlign = 'center';
+    x.fillText(it.n, bx + bw / 2, H - 14);
+    if(it.v != null && p > 0.9) x.fillText(it.v.toFixed(it.u === '%' ? 0 : 1) + it.u, bx + bw / 2, base - hh - 8);
+  });
+  x.strokeStyle = '#1a2236'; x.beginPath(); x.moveTo(20, base); x.lineTo(W - 20, base); x.stroke();
+}
+function drawSurfaceChart(p){
+  const C = prepC('cSurface'); if(!C) return; const {x, W, H} = C;
+  x.clearRect(0, 0, W, H);
+  const vals = S.lathist.slice(-36);
+  if(vals.length < 2){ x.fillStyle = '#5d6b84'; x.font = '12px ui-monospace, Consolas, monospace'; x.fillText('belum ada data', 20, H / 2); return; }
+  const N = 6, grid = [];
+  for(let i = 0; i < N; i++){ grid.push([]); for(let j = 0; j < N; j++){ const v = vals[i * N + j]; grid[i].push(v == null ? 300 : v); } }
+  const dx = Math.min(38, W / (N * 2.2)), dy = dx * 0.5, cx = W / 2, top = 70;
+  const P = (i, j, z) => ({x: cx + (j - i) * dx, y: top + (i + j) * dy - z * p * 0.6});
+  for(let i = 0; i < N - 1; i++){
+    for(let j = 0; j < N - 1; j++){
+      const z = (grid[i][j] + grid[i][j + 1] + grid[i + 1][j] + grid[i + 1][j + 1]) / 4;
+      const q = [P(i, j, grid[i][j]), P(i, j + 1, grid[i][j + 1]), P(i + 1, j + 1, grid[i + 1][j + 1]), P(i + 1, j, grid[i + 1][j])];
+      const t = Math.min(1, z / 300);
+      x.beginPath(); x.moveTo(q[0].x, q[0].y); q.slice(1).forEach(v => x.lineTo(v.x, v.y)); x.closePath();
+      x.fillStyle = `hsla(${120 - t * 120},90%,50%,${0.25 + t * 0.5})`; x.fill();
+      x.strokeStyle = `hsla(${120 - t * 120},100%,65%,.7)`; x.lineWidth = 1; x.stroke();
+    }
+  }
+  x.fillStyle = '#5d6b84'; x.font = '11px ui-monospace, Consolas, monospace'; x.textAlign = 'left';
+  x.fillText('hijau = latensi rendah · merah = latensi tinggi', 14, H - 12);
+}
+function drawTraderChart(p){
+  const C = prepC('cTrader'); if(!C) return; const {x, W, H} = C;
+  x.clearRect(0, 0, W, H);
+  const vals = S.lathist.filter(v => v != null);
+  if(vals.length < 5){ x.fillStyle = '#5d6b84'; x.font = '12px ui-monospace, Consolas, monospace'; x.fillText('belum cukup sampel (minimal 5 ping)', 20, H / 2); return; }
+  const candles = [];
+  for(let i = 0; i + 5 <= vals.length; i += 5){
+    const g = vals.slice(i, i + 5);
+    candles.push({o: g[0], c: g[g.length - 1], h: Math.max(...g), l: Math.min(...g)});
+  }
+  const all = candles.flatMap(c => [c.h, c.l]), max = Math.max(...all) * 1.1, min = Math.min(...all) * 0.9;
+  const Y = v => 20 + (H - 50) * (1 - (v - min) / (max - min || 1));
+  const cw = (W - 60) / Math.max(1, candles.length), body = Math.max(4, cw * 0.55);
+  x.strokeStyle = '#1a2236'; x.lineWidth = 1;
+  for(let i = 0; i <= 4; i++){ const y = 20 + (H - 50) * i / 4; x.beginPath(); x.moveTo(40, y); x.lineTo(W - 10, y); x.stroke(); }
+  const shown = Math.ceil(candles.length * p);
+  candles.slice(0, shown).forEach((cd, i) => {
+    const cx = 40 + i * cw + cw / 2, up = cd.c > cd.o, col = up ? '#ff2e4d' : '#39ff14';
+    x.strokeStyle = col; x.lineWidth = 1.5;
+    x.beginPath(); x.moveTo(cx, Y(cd.h)); x.lineTo(cx, Y(cd.l)); x.stroke();
+    const top = Y(Math.max(cd.o, cd.c)), bot = Y(Math.min(cd.o, cd.c));
+    x.fillStyle = col; x.shadowColor = col; x.shadowBlur = 8;
+    x.fillRect(cx - body / 2, top, body, Math.max(2, bot - top)); x.shadowBlur = 0;
+  });
+  x.fillStyle = '#5d6b84'; x.font = '11px ui-monospace, Consolas, monospace'; x.textAlign = 'left';
+  x.fillText(Math.round(max) + ' ms', 4, 24);
+  x.fillText(Math.round(min) + ' ms', 4, H - 30);
+}
+function renderCharts(placeholder){
+  if(!S.last && !placeholder){ return; }
+  const t0 = performance.now();
+  const step = now => {
+    const p = Math.min(1, (now - t0) / 1000), e = 1 - Math.pow(1 - p, 3);
+    drawMetricChart(e); drawColumnChart(e); drawSurfaceChart(e); drawTraderChart(e);
+    if(p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+window.addEventListener('resize', () => renderCharts(true));
+
+function showClearPrompt(){
+  $('#clearBox').classList.remove('hidden');
+  const inp = $('#clearIn'); inp.value = '';
+  setTimeout(() => inp.focus(), 50);
+}
+function answerClear(){
+  const v = $('#clearIn').value.trim().toLowerCase();
+  $('#clearBox').classList.add('hidden');
+  if(v !== 'y'){ log('CLEAR', 'dibatalkan. Terminal tidak dibersihkan.', 't-w'); return; }
+  resetAfterServer();
+}
+function resetAfterServer(){
+  $('#term').innerHTML = '';
+  S.last = null; S.lathist = []; S.lat = null; S.jit = null; S.loss = null; S.dns = null;
+  S.ipResult = S.ipResult || null;
+  $('#histCard').classList.add('hidden');
+  $('#results').innerHTML = '<p class="note">Belum ada pemindaian. Tekan START NETWORK SCAN atau DIAGNOSE CONNECTION.</p>';
+  $('#errors').innerHTML = '<p class="note">Belum ada analisis.</p>';
+  $('#siteOut').innerHTML = '';
+  $('#linkOut').innerHTML = '';
+  $('#diagInfo').textContent = '';
+  renderDiagram(true); renderPie(true); renderCharts(true); renderAdvice(true);
+  renderRacks(); refreshMonitor();
+  bootTerminal();
+  log('CLEAR', 'terminal dibersihkan dan server dikembalikan ke kondisi awal.', 't-s');
+}
+$('#clearIn').addEventListener('keydown', e => { if(e.key === 'Enter') answerClear(); });
+
+function createHosting(){
+  const f = $('#hostFile').files[0], out = $('#hostOut');
+  if(!f){ out.innerHTML = '<p class="note bad">Pilih file terlebih dahulu.</p>'; return; }
+  if(f.size > 2 * 1024 * 1024){
+    out.innerHTML = '<p class="note bad">File lebih dari 2 MB. Link tidak bisa dibuat karena terlalu panjang untuk browser.</p>';
+    log('HOST', `file ${f.name} terlalu besar untuk dijadikan link`, 't-c'); return;
+  }
+  log('HOST', `membuat link untuk ${f.name}...`, 't-n');
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64 = String(reader.result).split(',')[1];
+    const mime = /\.html?$/i.test(f.name) ? 'text/html' : 'text/plain';
+    const link = `data:${mime};charset=utf-8;base64,${base64}`;
+    out.innerHTML = `<div class="host-link">
+        <input id="hostLink" readonly value="${link}">
+        <button id="hostCopy" style="--c:var(--g)">SALIN LINK</button>
+      </div>
+      <p class="note">${esc(f.name)} · link ${(link.length / 1024).toFixed(0)} KB · tempel di address bar untuk membuka.</p>`;
+    log('HOST', `link siap untuk ${f.name} (${(link.length / 1024).toFixed(0)} KB)`, 't-s');
+    $('#hostLink').addEventListener('click', e => e.target.select());
+    $('#hostCopy').addEventListener('click', copyHostLink);
+  };
+  reader.onerror = () => { out.innerHTML = '<p class="note bad">Gagal membaca file.</p>'; log('HOST', 'gagal membaca file', 't-c'); };
+  reader.readAsDataURL(f);
+}
+function copyHostLink(){
+  const inp = $('#hostLink'); if(!inp) return;
+  const done = () => log('HOST', 'link disalin ke clipboard', 't-s');
+  if(navigator.clipboard){ navigator.clipboard.writeText(inp.value).then(done).catch(() => { inp.select(); document.execCommand('copy'); done(); }); }
+  else { inp.select(); document.execCommand('copy'); done(); }
+}
+$('#hostMake').addEventListener('click', createHosting);
+
+function renderAdvice(placeholder){
+  const R = S.last;
+  if(!R){ if(placeholder) $('#advice').innerHTML = '<p class="note">Saran akan muncul setelah MULAI SERVER selesai.</p>'; return; }
+  $('#adviceCard').classList.remove('hidden');
+  const E = R.errors, tips = [];
+  if(E.includes('disc') || E.includes('gateway')) tips.push('Restart modem dan router (cabut daya 30 detik), lalu pastikan lampu internet menyala.');
+  if(E.includes('dns')) tips.push('Ganti DNS ke 1.1.1.1 atau 8.8.8.8 pada perangkat atau router agar resolusi nama domain stabil.');
+  if(E.includes('unstable')) tips.push('Gunakan kabel Ethernet untuk perangkat utama, atau pindah ke pita 5 GHz agar koneksi tidak naik-turun.');
+  if(E.includes('weak')) tips.push('Dekatkan perangkat ke access point dan hindari dinding tebal atau perangkat yang mengganggu sinyal.');
+  if(E.includes('timeout')) tips.push('Hentikan unduhan atau streaming besar saat bekerja, agar bandwidth tidak habis.');
+  if(E.includes('server')) tips.push('Cek status layanan yang gagal di situs penyedianya. Jika semua gagal, coba jaringan lain.');
+  if(E.includes('usb')) tips.push('Gunakan kabel yang mendukung transfer data dan colokkan langsung tanpa hub.');
+  if(E.includes('link')) tips.push('Buka link yang gagal di browser untuk memastikan, lalu bandingkan dengan hasil kemarin di LINK HARIAN.');
+  if(!E.length) tips.push('Koneksi saat ini stabil. Pertahankan dengan menjalankan MULAI SERVER secara berkala.');
+  const base = [
+    'Gunakan Wi-Fi dengan enkripsi WPA2 atau WPA3, dan hindari Wi-Fi publik tanpa VPN.',
+    'Ganti sandi admin router dari pengaturan default, lalu perbarui firmware router.',
+    'Pastikan situs memakai HTTPS (ikon gembok di browser) sebelum memasukkan data.',
+    'Jangan memberikan kode OTP atau sandi kepada siapa pun, termasuk yang menghubungi lewat telepon atau pesan.'
+  ];
+  $('#advice').innerHTML = `<p class="note" style="margin:0 0 8px">Berdasarkan hasil MULAI SERVER terakhir:</p>
+    <ul style="margin-left:18px;font-size:12.5px">${tips.map(t => `<li style="margin-bottom:6px">${esc(t)}</li>`).join('')}</ul>
+    <p class="note" style="margin:10px 0 6px">Kebiasaan agar tetap aman:</p>
+    <ul style="margin-left:18px;font-size:12.5px">${base.map(t => `<li style="margin-bottom:6px">${esc(t)}</li>`).join('')}</ul>`;
+}
+
+const RUNNER_TEXT = 'Terimakasih Anda Sudah Memakai Panel Sistem Kami Di Buat Oleh Admin 𝘽͞𝙮͞  © 2025 𝙃𝙚𝙯𝙧𝙤𝙣 𝙎𝙞𝙢𝙖𝙣𝙟𝙪𝙣𝙩𝙖𝙠 𝙄𝙏𝘿 𝙎.𝙆𝙤𝙢.,,';
+function showRunner(){
+  if(S.runnerShown) return;
+  S.runnerShown = true;
+  const r = $('#runner');
+  $('#runnerText').textContent = '✦  ' + RUNNER_TEXT + '     ✦  ' + RUNNER_TEXT;
+  r.classList.remove('show'); void r.offsetWidth; r.classList.add('show');
+}
+
+let starRAF = null;
+function startStars(){
+  const c = $('#byeFx'), x = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+  c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const stars = Array.from({length: 160}, () => ({x: Math.random() * W, y: Math.random() * H, z: Math.random() * 1.6 + 0.4, h: Math.random() * 360}));
+  cancelAnimationFrame(starRAF);
+  const frame = () => {
+    x.fillStyle = 'rgba(2,3,10,.35)'; x.fillRect(0, 0, W, H);
+    stars.forEach(st => {
+      st.y += st.z * 1.8;
+      if(st.y > H){ st.y = 0; st.x = Math.random() * W; }
+      x.fillStyle = `hsla(${(st.h + st.y * 0.3) % 360},100%,70%,.9)`;
+      x.fillRect(st.x, st.y, st.z * 2, st.z * 2);
+    });
+    starRAF = requestAnimationFrame(frame);
+  };
+  frame();
+}
+function typeText(id, text){
+  const el = document.getElementById(id); let i = 0; el.textContent = '';
+  const t = setInterval(() => { el.textContent = text.slice(0, ++i); if(i >= text.length) clearInterval(t); }, 45);
+}
+function closeApp(){
+  const b = $('#bye');
+  b.classList.add('show');
+  startStars();
+  typeText('byeSub', 'sampai jumpa lagi · panel ditutup');
+  b.onclick = () => { b.classList.remove('show'); cancelAnimationFrame(starRAF); };
+  setTimeout(() => window.close(), 2800);
+  setTimeout(() => {
+    if(!window.closed) typeText('byeSub', 'browser tidak mengizinkan halaman ini menutup dirinya. Tutup tab dengan Ctrl+W atau Cmd+W.');
+  }, 3200);
+}
+function toggleProfile(){
+  const p = $('#profilePanel');
+  p.classList.toggle('hidden');
+  if(!p.classList.contains('hidden')) renderProfile();
+}
+function renderProfile(){
+  let saved = {}; try{ saved = JSON.parse(localStorage.getItem('hezron.profile') || '{}'); }catch(e){}
+  $('#pname').value = saved.name || '';
+  $('#pinfo').innerHTML = `perangkat: ${deviceKind() === 'handphone' ? 'handphone' : 'laptop'}<br>
+    browser: ${esc(S.browser ? S.browser.name : navigator.userAgent.split(' ').pop())}<br>
+    zona waktu: ${esc(tzInfo())}<br>
+    bahasa: ${esc(navigator.language)}<br>
+    scan tersimpan: ${history.length} · link dipantau: ${S.links.length}`;
+}
+function saveProfile(){
+  const name = $('#pname').value.trim();
+  try{ localStorage.setItem('hezron.profile', JSON.stringify({name})); }catch(e){}
+  log('PROFIL', name ? `nama profil disimpan: ${name}` : 'nama profil dikosongkan', 't-n');
+}
+
+const IP_GUIDE = {
+  hp: {title:'Handphone', color:'#39ff14', sections:[
+    {h:'Android (menu umum)', steps:[
+      'Buka Pengaturan, lalu ketik "alamat IP" di kolom pencarian. Cara ini berlaku di hampir semua merek Android.',
+      'Atau buka Pengaturan > Jaringan & internet > Internet (Wi-Fi), lalu ketuk ikon gerigi di samping jaringan yang tersambung.',
+      'Ketuk Lanjutan atau Detail jaringan, lalu lihat baris Alamat IP.']},
+    {h:'Samsung (One UI)', steps:[
+      'Buka Pengaturan > Koneksi > Wi-Fi.',
+      'Ketuk ikon gerigi di samping jaringan yang tersambung, lalu pilih Lihat detail.',
+      'Alternatif: Pengaturan > Tentang telepon > Status > Alamat IP Wi-Fi.']},
+    {h:'Xiaomi, Redmi, POCO (MIUI / HyperOS)', steps:[
+      'Buka Pengaturan > Wi-Fi, lalu ketuk jaringan yang tersambung.',
+      'Ketuk ikon panah atau Detail, lalu lihat Alamat IP.']},
+    {h:'Oppo, Realme (ColorOS / realme UI)', steps:[
+      'Buka Pengaturan > Wi-Fi, lalu ketuk ikon (i) atau panah di jaringan yang tersambung.',
+      'Lihat baris Alamat IP.']},
+    {h:'Vivo, iQOO (Funtouch / OriginOS)', steps:[
+      'Buka Pengaturan > Wi-Fi, lalu ketuk jaringan yang tersambung.',
+      'Pilih Detail atau Lanjutan, lalu lihat IP address.']},
+    {h:'iPhone (iOS)', steps:[
+      'Buka Pengaturan > Wi-Fi.',
+      'Ketuk ikon (i) di samping jaringan yang tersambung.',
+      'Lihat baris Alamat IPv4. IP ini yang dipakai untuk MASUKAN IP PERANGKAT.']}
+  ], tips:['IP seluler (data internet) tidak tampil di menu ini. Pastikan HP tersambung ke Wi-Fi yang sama dengan panel.'],
+    ex:'contoh: 192.168.1.25'},
+
+  laptop: {title:'Laptop dan PC', color:'#00d4ff', sections:[
+    {h:'Windows 11', steps:[
+      'Buka Pengaturan > Jaringan & internet > Wi-Fi (atau Ethernet jika memakai kabel LAN).',
+      'Klik nama jaringan yang tersambung, atau pilih Properti perangkat keras.',
+      'Lihat bagian Pengalamatan IP dan cari baris Alamat IPv4.']},
+    {h:'Windows 10', steps:[
+      'Buka Pengaturan > Jaringan & Internet > Wi-Fi, lalu klik jaringan yang tersambung.',
+      'Di bagian Properti, lihat baris Alamat IPv4.']},
+    {h:'Windows: cara cepat dengan Command Prompt', steps:[
+      'Tekan Win + R, ketik cmd, lalu tekan Enter.',
+      'Ketik ipconfig lalu tekan Enter.',
+      'Cari bagian Wireless LAN adapter Wi-Fi (untuk Wi-Fi) atau Ethernet adapter (untuk kabel LAN). Baris IPv4 Address adalah IP-nya.']},
+    {h:'Windows: PowerShell', steps:[
+      'Klik kanan tombol Start, pilih Terminal atau Windows PowerShell.',
+      'Ketik Get-NetIPAddress -AddressFamily IPv4 lalu tekan Enter.',
+      'Lihat kolom IPAddress pada adapter yang aktif.']},
+    {h:'macOS (Ventura ke atas)', steps:[
+      'Klik menu Apple > Pengaturan Sistem > Wi-Fi.',
+      'Klik Detail di samping jaringan yang tersambung.',
+      'Pilih TCP/IP, lalu lihat Alamat IPv4.']},
+    {h:'macOS (versi lama) dan Terminal', steps:[
+      'Versi lama: Pengaturan Sistem > Jaringan > Wi-Fi > Lanjutan > TCP/IP.',
+      'Terminal: ketik ipconfig getifaddr en0 untuk Wi-Fi, atau en1 pada beberapa Mac.']},
+    {h:'Linux', steps:[
+      'Buka terminal, lalu ketik ip -4 addr show, atau hostname -I untuk ringkas.',
+      'Cari alamat dengan awalan 192.168, 10, atau 172.16 sampai 172.31 pada antarmuka wlan0 (Wi-Fi) atau eth0 (kabel).']},
+    {h:'Chromebook', steps:[
+      'Klik jam di pojok kanan bawah, lalu klik jaringan Wi-Fi yang tersambung.',
+      'Klik ikon (i), lalu lihat Alamat IP.']}
+  ], tips:['Laptop yang memakai Wi-Fi dan kabel LAN sekaligus bisa punya dua IP. Pilih yang sesuai jaringan panel.'],
+    ex:'contoh: 192.168.0.12'},
+
+  monitor: {title:'Monitor pintar dan TV', color:'#b44dff', sections:[
+    {h:'Samsung Smart TV / Smart Monitor (Tizen)', steps:[
+      'Buka Pengaturan > Umum > Jaringan > Status jaringan.',
+      'Pilih Pengaturan IP untuk melihat Alamat IP.']},
+    {h:'LG webOS', steps:[
+      'Buka Pengaturan > Jaringan > Status koneksi.',
+      'Pilih Lihat detail atau Alamat IP untuk melihat IP perangkat.']},
+    {h:'Android TV atau Google TV', steps:[
+      'Buka Pengaturan > Jaringan & internet, lalu pilih jaringan yang tersambung.',
+      'Lihat baris Alamat IP atau pilih Lanjutan.']},
+    {h:'Monitor biasa tanpa Wi-Fi', steps:[
+      'Monitor biasa hanya tersambung lewat HDMI atau DisplayPort dan tidak punya IP.',
+      'Jika ingin tahu IP-nya, lihat dari router karena monitor itu tidak punya alamat jaringan sendiri.']}
+  ], tips:['Jika menu jaringan tidak ada, cari IP perangkat di tab ROUTER.'],
+    ex:'contoh: 192.168.1.40'},
+
+  tablet: {title:'Tablet', color:'#ff2e4d', sections:[
+    {h:'Android tablet (Samsung Tab, Xiaomi Pad, dan lainnya)', steps:[
+      'Buka Pengaturan, lalu ketik "alamat IP" di kolom pencarian.',
+      'Atau buka Pengaturan > Wi-Fi, ketuk ikon gerigi atau (i) di jaringan yang tersambung, lalu lihat Alamat IP.']},
+    {h:'iPad (iPadOS)', steps:[
+      'Buka Pengaturan > Wi-Fi.',
+      'Ketuk ikon (i) di samping jaringan yang tersambung.',
+      'Lihat baris Alamat IPv4.']}
+  ], tips:['Pastikan tablet tersambung ke Wi-Fi, bukan data seluler, agar IP-nya berada di jaringan yang sama dengan panel.'],
+    ex:'contoh: 192.168.1.31'},
+
+  router: {title:'Lewat router (untuk semua perangkat)', color:'#39ff14', sections:[
+    {h:'Cari alamat admin router', steps:[
+      'Windows: ipconfig, lalu lihat Default Gateway. Itulah alamat router.',
+      'Mac: Pengaturan Sistem > Wi-Fi > Detail > TCP/IP, lalu lihat Router.',
+      'Android dan iPhone: pada detail Wi-Fi, cari baris Gateway atau Router.',
+      'Alamat umum: 192.168.1.1, 192.168.0.1, atau 10.0.0.1. Biasanya tertulis di stiker belakang router.']},
+    {h:'Masuk dan lihat daftar perangkat', steps:[
+      'Buka browser, ketik alamat router, lalu masuk dengan akun admin router.',
+      'Akun dan sandi default ada di stiker router. Jika sudah diganti, gunakan sandi yang Anda buat.',
+      'Buka menu Connected Devices, DHCP client list, atau Daftar perangkat.',
+      'Di situ tampil nama perangkat dan IP-nya.']}
+  ], tips:['Jangan mengubah pengaturan router kecuali Anda paham dampaknya. Cukup lihat daftarnya.'],
+    ex:'contoh daftar: Redmi-Note 192.168.1.25'},
+
+  jenis: {title:'Jenis-jenis IP', color:'#ff2e4d', sections:[
+    {h:'IP lokal (yang dipakai panel)', steps:[
+      '192.168.0.0 sampai 192.168.255.255: umum dipakai router rumah.',
+      '10.0.0.0 sampai 10.255.255.255: umum dipakai jaringan kantor atau router tertentu.',
+      '172.16.0.0 sampai 172.31.255.255: dipakai jaringan privat lain.']},
+    {h:'IP bermasalah', steps:[
+      '169.254.x.x: perangkat tidak mendapat IP dari router. Restart Wi-Fi dan router.',
+      'Dua perangkat dengan IP sama: konflik IP. Restart kedua perangkat.']},
+    {h:'IP publik dan IPv6', steps:[
+      'IP publik adalah alamat yang dilihat dari internet. Itu bukan yang dipakai MASUKAN IP PERANGKAT.',
+      'Alamat IPv6 (contoh fe80:: atau 2001:) bisa diabaikan. Panel memakai IPv4.']},
+    {h:'Agar IP tidak berubah', steps:[
+      'IP lokal biasanya berubah saat perangkat disambung ulang (DHCP).',
+      'Untuk IP tetap, aktifkan DHCP reservation atau IP statis di router.']}
+  ], tips:[], ex:'contoh: 192.168.1.25 (lokal) · 169.254.10.5 (bermasalah)'}
+};
+function renderIpGuide(key){
+  const g = IP_GUIDE[key];
+  document.querySelectorAll('[data-iptab]').forEach(b => b.classList.toggle('active', b.dataset.iptab === key));
+  let delay = 0;
+  const secs = g.sections.map(sec => {
+    const steps = sec.steps.map((t, i) => {
+      delay += 70;
+      return `<div class="ipstep" style="--c:${g.color};animation-delay:${delay}ms"><span class="num">${i+1}</span><span class="txt">${esc(t)}</span></div>`;
+    }).join('');
+    return `<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:${g.color};letter-spacing:.5px;margin-bottom:6px">▸ ${esc(sec.h)}</div>${steps}</div>`;
+  }).join('');
+  const tips = g.tips && g.tips.length ? `<div class="ipex" style="border-color:rgba(255,176,32,.5);color:#ffb020;background:rgba(255,176,32,.05)">${g.tips.map(esc).join('<br>')}</div>` : '';
+  $('#ipGuide').innerHTML = `<div class="ipguide-h">${g.title}</div>${secs}${tips}
+    <div class="ipex" style="margin-top:10px">${esc(g.ex)}</div>
+    <div class="ipex" style="border-color:rgba(57,255,20,.5);color:var(--g);background:rgba(57,255,20,.05)">Langkah berikutnya: salin IP di atas, lalu tekan MASUKAN IP PERANGKAT di panel kabel dan jalankan MULAI SERVER.</div>`;
+}
+$('#ipTabs').addEventListener('click', e => { const b = e.target.closest('[data-iptab]'); if(b) renderIpGuide(b.dataset.iptab); });
+
+function logIpStatus(){
+  const r = S.ipResult;
+  if(S.targetIp && r && r.ip === S.targetIp){
+    log('IP', `IP: tersedia · ${S.targetIp} · port aktif: ${r.ports.length ? r.ports.join(', ') : 'tidak ada'}`, r.ports.length ? 't-s' : 't-w');
+  }else if(S.targetIp){
+    log('IP', `IP: ${S.targetIp} disimpan, belum diperiksa. Jalankan MULAI SERVER.`, 't-d');
+  }else{
+    log('IP', 'IP: belum tersedia. Tekan MASUKAN IP PERANGKAT untuk menyimpan IP perangkat.', 't-w');
+  }
+}
+function setTargetIp(){
+  const cur = S.targetIp || '';
+  const v = window.prompt('Masukkan IP perangkat (contoh: 192.168.1.25)', cur);
+  if(v === null) return;
+  const ip = v.trim();
+  const oct = ip.split('.');
+  const ok = oct.length === 4 && oct.every(o => /^\d{1,3}$/.test(o) && +o <= 255);
+  if(!ok){ log('IP', `format IP tidak valid: "${ip}"`, 't-c'); return; }
+  S.targetIp = ip;
+  document.querySelectorAll('[data-act="ipdev"]').forEach(b => b.textContent = 'IP: ' + ip);
+  logIpStatus();
+  log('IP', `IP perangkat disimpan: ${ip}. Jalankan MULAI SERVER untuk mendeteksinya.`, 't-d');
+}
+function startRain(){
+  const c = $('#rain'), panel = $('#termPanel');
+  if(!c || !panel) return;
+  const x = c.getContext('2d'), dpr = window.devicePixelRatio || 1, chars = '01アイウエオカキクケコサシスセソタチツテトABCDEF<>/\\|#$%';
+  let cols = [], W = 0, H = 0;
+  const fit = () => {
+    const r = panel.getBoundingClientRect();
+    W = r.width; H = r.height;
+    c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.floor(W / 14);
+    cols = Array.from({length: n}, () => ({y: Math.random() * H, v: 0.6 + Math.random() * 1.6}));
+  };
+  fit(); window.addEventListener('resize', fit);
+  let last = 0;
+  const frame = now => {
+    requestAnimationFrame(frame);
+    if(now - last < 60) return; last = now;
+    x.fillStyle = 'rgba(2,6,4,.14)'; x.fillRect(0, 0, W, H);
+    x.font = '12px ui-monospace, Consolas, monospace';
+    cols.forEach((col, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      x.fillStyle = Math.random() > 0.97 ? '#d8ffd0' : '#39ff14';
+      x.fillText(ch, i * 14, col.y);
+      col.y += col.v * 8;
+      if(col.y > H && Math.random() > 0.975){ col.y = 0; col.v = 0.6 + Math.random() * 1.6; }
+    });
+  };
+  requestAnimationFrame(frame);
+}
+function renderIpResult(ip, rows, found){
+  $('#siteOut').innerHTML = `<table class="kvt">
+    <tr><th>IP perangkat</th><td>${esc(ip)}</td></tr>
+    <tr><th>Status</th><td class="${found.length ? 'ok' : 'bad'}">${found.length ? 'Terdeteksi' : 'Tidak terdeteksi'}</td></tr>
+    ${rows.map(r => `<tr><th>Port ${r.port} (${r.proto})</th><td class="${r.ok ? 'ok' : 'warn'}">${r.ok ? 'merespons · ' + r.ms.toFixed(0) + ' ms' : (r.timeout ? 'timeout' : 'tidak merespons')}</td></tr>`).join('')}
+    <tr><th>Waktu</th><td>${ts()}</td></tr></table>
+    <p class="note">Panel hanya memastikan perangkat menjawab di port tersebut. Isi perangkat tidak bisa dibaca dari IP.</p>`;
+}
+async function probeIP(ip){
+  log('IP', `menjalankan server dan mendeteksi perangkat di ${ip}...`, 't-n');
+  const ports = [['http', 80], ['https', 443], ['http', 8080]];
+  const found = [];
+  const rows = [];
+  for(const [proto, port] of ports){
+    const url = `${proto}://${ip}${(proto === 'http' && port === 80) || (proto === 'https' && port === 443) ? '' : ':' + port}/`;
+    const r = await req(url, {mode:'no-cors'}, 2500);
+    rows.push({port, proto, ok:r.ok, ms:r.ms, timeout:r.timeout});
+    if(r.ok){ found.push(port); log('IP', `port ${port} (${proto}) merespons · ${r.ms.toFixed(0)} ms`, 't-s'); }
+    else log('IP', `port ${port} (${proto}) ${r.timeout ? 'timeout' : 'tidak merespons'}`, 't-w');
+  }
+  S.ipResult = {ip, ports: found, t: ts()};
+  renderIpResult(ip, rows, found);
+  logIpStatus();
+  if(found.length) log('IP', `perangkat ${ip} terdeteksi di jaringan. Port aktif: ${found.join(', ')}`, 't-s');
+  else log('IP', `perangkat ${ip} tidak terdeteksi. Pastikan IP benar, perangkat menyala, dan satu jaringan dengan panel.`, 't-c');
+  return found;
+}
+
+function toggleFull(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen()
+      .then(() => log('UI', 'layar penuh aktif', 't-n'))
+      .catch(() => log('UI', 'layar penuh diblokir browser', 't-w'));
+  }else{
+    document.exitFullscreen().catch(() => {});
+  }
+}
+function usbEvent(kind, dev){
+  S.events.unshift({kind, t: ts(), desc: devName(dev)});
+  if(S.listenUntil > Date.now()) S.listenCount++;
+  log('KABEL', `${kind === 'connect' ? 'TERHUBUNG' : 'DICABUT'}: ${devName(dev)}`, kind === 'connect' ? 't-s' : 't-w');
+  if(kind === 'connect') tryOpen(dev);
+  else delete S.devStatus[devKey(dev)];
+  refreshUSB(false);
+}
+if('usb' in navigator){
+  navigator.usb.addEventListener('connect', e => usbEvent('connect', e.device));
+  navigator.usb.addEventListener('disconnect', e => usbEvent('disconnect', e.device));
+}
+
+function renderTab(){
+  $('#tabs').innerHTML = Object.entries(TABS).map(([k,t]) =>
+    `<button data-tab="${k}" class="${S.tab===k?'active':''}" style="--c:var(--b)">${t.label}</button>`).join('');
+  const t = TABS[S.tab];
+  let body = '';
+  if(S.tab === 'wifi'){
+    body = `<table class="kvt">
+      <tr><th>Status internet</th><td class="${S.online?'ok':'bad'}">${S.online?'Online':'Offline'}</td></tr>
+      <tr><th>Jenis koneksi</th><td>${S.conn ? esc(S.conn.type) : 'tidak diketahui'}</td></tr>
+      <tr><th>Kecepatan efektif</th><td>${S.conn ? esc(S.conn.eff) : 'tidak diketahui'}</td></tr>
+      <tr><th>Kualitas sinyal</th><td>tidak bisa dibaca browser; dinilai dari latensi dan loss di scan</td></tr></table>
+      <p class="note">Jika router atau Wi-Fi bermasalah, lihat hasil scan dan DETEKSI ERROR.</p>`;
+  }else if(S.tab === 'eth'){
+    const eth = S.conn && S.conn.type === 'ethernet';
+    body = `<table class="kvt">
+      <tr><th>Ethernet dilaporkan browser</th><td class="${eth?'ok':''}">${eth ? 'ya' : 'tidak dilaporkan'}</td></tr>
+      <tr><th>Status internet</th><td class="${S.online?'ok':'bad'}">${S.online?'Online':'Offline'}</td></tr></table>
+      <p class="note">Browser desktop jarang melaporkan jenis Ethernet. Jika kabel LAN dicolok dan status internet online, koneksi sudah berfungsi meski jenisnya tidak terbaca.</p>`;
+  }else{
+    const list = S.usbDevs.length
+      ? S.usbDevs.map(d => `<div class="stat" style="margin-bottom:8px"><small>VID ${hex(d.vendorId)} · PID ${hex(d.productId)}</small>
+          <b>${esc(d.productName || 'Perangkat tanpa nama')}</b>
+          <small>${esc(d.manufacturerName || '')} · status: <span class="${(S.devStatus[devKey(d)]||'').startsWith('terhubung')?'ok':((S.devStatus[devKey(d)]||'').startsWith('gagal')?'bad':'warn')}">${esc(S.devStatus[devKey(d)] || 'belum dibuka')}</span></small></div>`).join('')
+      : '<p class="note">Belum ada perangkat yang diizinkan. Tekan IZINKAN KABEL / PERANGKAT, lalu pilih perangkat di jendela browser. Panel akan langsung mencoba menghubungkannya.</p>';
+    const conn = S.usbDevs.find(d => (S.devStatus[devKey(d)] || '').startsWith('terhubung'));
+    const hero = conn ? heroHTML(conn) : '';
+    const unsupported = !('usb' in navigator) ? `<p class="note bad">WebUSB tidak tersedia di browser ini. Gunakan Chrome atau Edge.</p>` : '';
+    body = unsupported + hero + list + `<p class="note">${t.tip}</p>`;
+  }
+  $('#tabBody').innerHTML = body;
+  renderEvents();
+}
+function heroHTML(d){
+  const tag = brandOf(d).slice(0, 8).toUpperCase();
+  return `<div class="hero">
+    <svg viewBox="0 0 640 110" width="100%" height="110" aria-hidden="true">
+      <defs><linearGradient id="gw" x1="0" x2="1"><stop offset="0" stop-color="#39ff14"/><stop offset=".5" stop-color="#00d4ff"/><stop offset="1" stop-color="#b44dff"/></linearGradient></defs>
+      <path d="M70 55 H570" stroke="rgba(255,255,255,.07)" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M70 55 H570" stroke="url(#gw)" stroke-width="3" stroke-dasharray="10 8" fill="none" stroke-linecap="round">
+        <animate attributeName="stroke-dashoffset" from="0" to="-36" dur="1.2s" repeatCount="indefinite"/>
+      </path>
+      <circle r="5" fill="#39ff14" style="filter:drop-shadow(0 0 6px #39ff14)"><animateMotion dur="1.8s" repeatCount="indefinite" path="M70 55 H570"/></circle>
+      <circle r="5" fill="#b44dff" style="filter:drop-shadow(0 0 6px #b44dff)"><animateMotion dur="1.8s" begin="0.9s" repeatCount="indefinite" path="M570 55 H70"/></circle>
+      <g>
+        <circle cx="70" cy="55" r="16" fill="#0b1220" stroke="#39ff14" stroke-width="2"/>
+        <circle cx="70" cy="55" r="16" fill="none" stroke="#39ff14" class="ring"/>
+        <text x="70" y="59" text-anchor="middle" fill="#39ff14" font-size="10" font-family="monospace">PANEL</text>
+      </g>
+      <g>
+        <circle cx="570" cy="55" r="18" fill="#0b1220" stroke="#b44dff" stroke-width="2"/>
+        <circle cx="570" cy="55" r="18" fill="none" stroke="#b44dff" class="ring" style="animation-delay:1s"/>
+        <text x="570" y="59" text-anchor="middle" fill="#b44dff" font-size="9" font-family="monospace">${esc(tag)}</text>
+      </g>
+    </svg>
+    <div class="hero-info">
+      <div class="hero-name">${esc(d.productName || 'Perangkat terdeteksi')}</div>
+      <div class="hero-meta">${esc(brandOf(d))} · VID ${hex(d.vendorId)} · PID ${hex(d.productId)}</div>
+      <span class="pill">● TERHUBUNG</span>
+    </div>
+  </div>`;
+}
+function renderEvents(){
+  $('#events').innerHTML = S.events.length
+    ? S.events.slice(0,20).map(e => `<div><span class="${e.kind==='connect'?'ok':'warn'}">${e.kind==='connect'?'TERDETEKSI':'DICABUT'}</span> · ${e.t} · ${esc(e.desc)}</div>`).join('')
+    : '<div class="note">Belum ada event colok/cabut.</div>';
+}
+
+/* ================= EKSPOR ================= */
+/* ================= REKAMAN KE SERVER ================= */
+const deviceKind = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) ? 'handphone' : 'laptop';
+async function saveRecord(){
+  const R = S.last; if(!R) return;
+  const rec = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    t: new Date().toISOString(), device: deviceKind(), mode: R.mode,
+    lat: R.lat, jit: R.jit, loss: R.loss, dns: R.dns, down: R.down, up: R.up,
+    errors: R.errors, linkFail: R.linkFail || 0, links: (R.links || []).length,
+    usb: Object.entries(S.devStatus).map(([dev, status]) => ({dev, status})),
+    browser: S.browser ? S.browser.name : '', ua: navigator.userAgent.slice(0, 160)
+  };
+  let list = [];
+  try{ list = JSON.parse(localStorage.getItem('hezron.records') || '[]'); }catch(e){}
+  list = [...list, rec].slice(-200);
+  try{ localStorage.setItem('hezron.records', JSON.stringify(list)); }catch(e){}
+  if(location.protocol.startsWith('http')){
+    try{
+      const r = await fetch('/api/records', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(rec)});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      log('SERVER', `rekaman (${rec.device}) tersimpan ke server`, 't-s');
+    }catch(e){ log('SERVER', 'server tidak menerima rekaman, tersimpan lokal saja', 't-w'); }
+  }else{
+    log('SERVER', 'rekaman tersimpan lokal. Jalankan server.py untuk menyimpan ke server.', 't-w');
+  }
+}
+
+function flushExport(){
+  if(S.exportPending && !S.scanning && !S.serverBusy){
+    S.exportPending = false;
+    log('EXPORT', 'Terminal selesai. Laporan dibuat sekarang.', 't-s');
+    exportReport();
+  }
+}
+function exportReport(){
+  if(S.scanning || S.serverBusy){
+    S.exportPending = true;
+    log('EXPORT', 'Ekspor ditunda. Menunggu terminal selesai mengerjakan pengecekan...', 't-w');
+    return;
+  }
+  const R = S.last;
+  const L = ['HEZRON NETWORK REPAIR PANEL v2 — LAPORAN', 'Dibuat: ' + new Date().toLocaleString('id-ID'), '',
+    'STATUS', 'Online: ' + (S.online ? 'ya' : 'tidak'), 'Koneksi: ' + (S.conn ? S.conn.type + ' / ' + S.conn.eff : 'tidak diketahui'),
+    'Browser: ' + (S.browser ? S.browser.name : 'belum diperiksa'), 'USB: ' + (S.usb || 'belum diperiksa'), ''];
+  if(R){
+    L.push('HASIL SCAN TERAKHIR (' + R.time + ')',
+      'Latensi rata-rata: ' + (R.lat != null ? R.lat.toFixed(0) + ' ms' : '—'),
+      'Jitter: ' + (R.jit != null ? R.jit.toFixed(0) + ' ms' : '—'),
+      'Packet loss (HTTP): ' + R.loss.toFixed(0) + '%',
+      'DNS: ' + R.dns,
+      'Download: ' + (R.down != null ? R.down.toFixed(2) + ' Mbps' : 'tidak diukur'),
+      'Upload: ' + (R.up != null ? R.up.toFixed(2) + ' Mbps' : 'tidak diukur'),
+      'Error terdeteksi: ' + (R.errors.length ? R.errors.map(k => ERR[k].t).join(', ') : 'tidak ada'), '');
+    R.errors.forEach(k => L.push('- ' + ERR[k].t + ': ' + ERR[k].c, ...ERR[k].fix.map(f => '    * ' + f)));
+  }else L.push('Belum ada hasil scan.');
+  L.push('', 'LINK HARIAN', ...(S.links.length ? S.links.map(u => '- ' + u) : ['tidak ada']));
+  L.push('', 'PERANGKAT USB', ...(S.usbDevs.length ? S.usbDevs.map(d => `- ${devName(d)}: ${S.devStatus[devKey(d)] || 'belum dibuka'}`) : ['tidak ada perangkat diizinkan']));
+  L.push('', 'CATATAN: Packet loss dihitung dari HTTP, bukan ICMP. DNS diuji lewat DNS-over-HTTPS. Riwayat browser dan aplikasi tidak dibaca panel. Jenis kabel tidak bisa dibaca browser.');
+  const url = URL.createObjectURL(new Blob([L.join('\n')], {type:'text/plain'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'hezron-report-' + stamp() + '.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log('EXPORT', 'Laporan diunduh', 't-s');
+}
+
+/* ================= GUIDE ================= */
+function showGuide(){
+  const items = Object.values(ERR).map(e => `<li><b class="warn">${e.t}</b><br>${e.fix.map(esc).join(' ')}</li>`).join('');
+  $('#modalBody').innerHTML = `<h3>NETWORK REPAIR GUIDE</h3>
+    <p class="note">Panduan ini hanya saran. Lakukan langkah secara manual. Panel tidak mengubah jaringan Anda.</p>
+    <ol>${items}</ol><button class="close" data-close>TUTUP</button>`;
+  $('#modal').classList.add('show');
+}
+function closeGuide(){ $('#modal').classList.remove('show'); }
+
+/* ================= EVENTS ================= */
+const ACTIONS = {
+  scan:    () => runScan('full'),
+  diag:    () => runScan('quick'),
+  usb:     () => { log('USB', 'Memeriksa ulang perangkat...', 't-n'); refreshUSB(false); },
+  permit:  () => permitUSB(),
+  ipdev:   () => setTargetIp(),
+  server:  () => startServer(),
+  full:    () => toggleFull(),
+  closeApp: () => closeApp(),
+  profile: () => toggleProfile(),
+  saveProfile: () => saveProfile(),
+  test:    () => testInternet(),
+  site:    () => checkSite(),
+  guide:   () => showGuide(),
+  refresh: () => { refreshStatus(); log('NETWORK', 'status koneksi diperbarui', 't-u'); },
+  auto:    () => toggleAuto(),
+  export:  () => exportReport(),
+  addlink: () => addLink(),
+  checklinks: () => checkLinks()
+};
+document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ACTIONS[b.dataset.act]()));
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if(b){ S.tab = b.dataset.tab; renderTab(); } });
+$('#linkList').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if(b) removeLink(+b.dataset.rm); });
+$('#linkIn').addEventListener('keydown', e => { if(e.key === 'Enter') addLink(); });
+$('#siteIn').addEventListener('keydown', e => { if(e.key === 'Enter') checkSite(); });
+$('#modal').addEventListener('click', e => { if(e.target.id === 'modal' || e.target.hasAttribute('data-close')) closeGuide(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeGuide(); });
+
+window.addEventListener('online', () => {
+  log('NETWORK', 'browser melaporkan kembali online', 't-s');
+  refreshStatus(true);
+  if(S.auto) runScan('quick');
+});
+window.addEventListener('offline', () => { log('NETWORK', 'browser melaporkan offline', 't-c'); refreshStatus(true); });
+if(navigator.connection) navigator.connection.addEventListener('change', () => {
+  log('NETWORK', 'perubahan jenis koneksi terdeteksi', 't-u');
+  refreshStatus(true);
+  if(S.auto) runScan('quick');
+});
+window.addEventListener('resize', drawGraph);
+
+setInterval(() => { $('#clock').textContent = ts(); updateTermInfo(); }, 1000);
+$('#clock').textContent = ts();
+bootTerminal();
+ensureCmd();
+startRain();
+renderBrowser();
+refreshStatus(true);
+renderLinks();
+renderHistory();
+renderTab();
+refreshUSB(false);
+renderIpGuide('hp');
+drawGraph();
+renderRacks();
+renderDiagram(true);
+renderPie(true);
+renderCharts(true);
+renderAdvice(true);
+</script>
+</body>
+</html>
